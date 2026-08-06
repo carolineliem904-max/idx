@@ -32,7 +32,7 @@ Full backfill of the **current, active** IDX universe.
 exactly this — do not train or backtest against `securities`/`prices_daily`
 as if this were the full point-in-time universe yet.
 
-### Phase 1b — in progress
+### Phase 1b — done (within its documented bound)
 Delisted-tail discovery + IDX raw-price cross-check, via
 `jobs/harvest_universe_history.py` walking IDX's `GetStockSummary` daily
 endpoint (writes `prices_daily` source='idx') and then diffing the ticker
@@ -47,8 +47,48 @@ before 2020-01-02 remain invisible to this pipeline.** Closing that gap
 needs a different source (IDX delisting-announcement archive, a paid
 vendor, or manual compilation) — not attempted yet.
 
-Once `reconcile-delisted` has run, this section will state exactly how many
-delisted tickers were recovered and the date range they cover.
+**Validated (2026-08-06):**
+| Check | Result |
+|---|---|
+| Trading days harvested | 1,721 dates attempted, 0 failed (2020-01-02 → 2026-08-05), 1,585 confirmed trading days |
+| `prices_daily` (source='idx') | 1,336,016 rows, 989 tickers, 0 duplicate PK, 0 OHLC sanity violations |
+| Delisted tickers recovered | **27** — see table below. All last-observed between 2020-01-17 and 2026-08-05, consistent with the harvest's own coverage window (nothing earlier is possible to find, by construction) |
+| `trading_calendar` | 2020-01-02+ now ground-truth from IDX (verified/weekend/holiday, no threshold); pre-2020 stays on bootstrap's heuristic |
+
+`securities` is now 989 rows total: 962 active (Phase 1a) + 27 inferred-delisted.
+**Still survivorship-biased for anything delisted before 2020-01-01** — that
+gap is real and open, not fixed by this phase. `delisting_date` for the 27
+is *last observed trading via IDX*, not an official delisting-announcement
+date (spec §3.1 step 1's ideal source) — treat it as a proxy, not ground truth.
+
+<details>
+<summary>The 27 recovered delisted tickers</summary>
+
+`GOTOM` (2026-08-05), `CNTX`/`CNTB` (2026-07-29), `MASA` (2025-10-29),
+`MFIN` (2025-10-01), `KRAH`/`HDTX`/`MYRXP`/`KPAL`/`KPAS`/`JKSW`/`MAMI`/
+`NIPS`/`PRAS`/`FORZ`/`MYRX`/`MAMIP` (2025-07-18), `FREN` (2025-04-16),
+`RMBA` (2024-01-15), `TURI` (2023-04-05), `FINN` (2021-05-04), `GREN`
+(2020-11-20), `CKRA` (2020-08-27), `SCBD` (2020-04-17), `APOL`
+(2020-04-03), `ITTG` (2020-01-22), `BORN` (2020-01-17) — dates are last
+observed trading, not official delisting dates.
+</details>
+
+**Two real bugs found and fixed during this phase**, both from the same
+root cause (concurrent jobs writing shared tables without coordinating who
+wins):
+1. The harvester's FK-satisfying placeholder insert let SQLAlchemy's
+   column default silently set every newly-discovered ticker
+   `is_active=True` — which made `reconcile-delisted`'s diff against the
+   active universe empty by construction (every ticker it ever touched
+   looked active). Fixed with `db/upserts.py::ensure_security_placeholder`,
+   which never sets `is_active` on an existing row and defaults new ones to
+   `False` explicitly rather than relying on the column default.
+2. Running the harvester and `bootstrap.py` concurrently let bootstrap's
+   blanket heuristic `trading_calendar` upsert overwrite already-correct
+   IDX ground-truth rows for every date it had covered by the time
+   bootstrap finished. Fixed with `resync-calendar`, which re-derives
+   trading_calendar for the harvested range from already-persisted data —
+   safe to rerun any time this drift is suspected.
 
 ## Local dev setup
 
@@ -76,6 +116,7 @@ python -m idx.jobs.bootstrap --tickers AMMN # just one, e.g. for a quick smoke t
 # 6. Historical harvest (delisted-tail discovery + IDX raw price cross-check)
 python -m idx.jobs.harvest_universe_history harvest    # 2020-01-02 -> today, resumable
 python -m idx.jobs.harvest_universe_history reconcile-delisted
+python -m idx.jobs.harvest_universe_history resync-calendar  # only if harvest ran concurrently with bootstrap
 
 # Tests
 pytest tests/ -q
