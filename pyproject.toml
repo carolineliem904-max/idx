@@ -13,6 +13,8 @@ dependencies = [
     "structlog>=24.1",
     "python-dotenv>=1.0",
     "typer>=0.12",
+    "curl_cffi>=0.7",
+    "openpyxl>=3.1",
 ]
 
 [project.optional-dependencies]
