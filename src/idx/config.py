@@ -3,10 +3,17 @@ from __future__ import annotations
 
 import datetime as dt
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+# Explicit path, not bare load_dotenv()'s CWD-upward search: launchd (Part
+# G) starts jobs with no guaranteed working directory, so CWD-relative
+# discovery would silently fail to find .env and every DATABASE_URL lookup
+# would raise — exactly the kind of failure that's invisible until the
+# scheduled job actually runs unattended.
+_ENV_PATH = Path(__file__).resolve().parents[2] / ".env"  # src/idx/config.py -> repo root
+load_dotenv(_ENV_PATH)
 
 
 def database_url() -> str:

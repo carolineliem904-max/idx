@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.idx.deadmansswitch</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/carolineliem/Documents/idx-data/scripts/run_dead_mans_switch.sh</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/carolineliem/Documents/idx-data</string>
+
+    <!--
+      Deliberately independent of com.idx.daily's own schedule (spec
+      extension, Phase 2 Part F) — a check for "daily.py hasn't run" that
+      only runs as part of daily.py running can never fire when it
+      matters. Checks every 6 hours (local time — same caveat as
+      com.idx.daily.plist applies to these Hour values) against a 36h
+      staleness threshold, so a dead scheduler is caught same-day, not
+      after another silent 36h pass.
+    -->
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict><key>Hour</key><integer>0</integer><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Hour</key><integer>6</integer><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Hour</key><integer>12</integer><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Hour</key><integer>18</integer><key>Minute</key><integer>0</integer></dict>
+    </array>
+
+    <key>StandardOutPath</key>
+    <string>/Users/carolineliem/Documents/idx-data/data/logs/launchd/dead_mans_switch_stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/carolineliem/Documents/idx-data/data/logs/launchd/dead_mans_switch_stderr.log</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.idx.daily</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/carolineliem/Documents/idx-data/scripts/run_daily.sh</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/carolineliem/Documents/idx-data</string>
+
+    <!--
+      spec §3.2: 18:30 WIB (11:30 UTC), Monday-Friday.
+
+      IMPORTANT: StartCalendarInterval fires in the MACHINE'S LOCAL
+      TIMEZONE, decided by launchd itself before the job process (and any
+      of its own env vars) even starts — there is no way to pin this to
+      UTC or WIB independent of the Mac's system clock. The Hour/Minute
+      below (18:30) are correct ONLY if this Mac's System Settings ->
+      timezone is set to Asia/Jakarta (WIB, UTC+7). If it's set to
+      anything else, convert 11:30 UTC to that local timezone yourself
+      and edit every Hour/Minute pair below before loading this.
+
+      StartCalendarInterval (not StartInterval) specifically because it
+      catches up on a missed run when the machine wakes from sleep —
+      see README "Local scheduling" for why that matters here.
+    -->
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>30</integer></dict>
+        <dict><key>Weekday</key><integer>2</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>30</integer></dict>
+        <dict><key>Weekday</key><integer>3</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>30</integer></dict>
+        <dict><key>Weekday</key><integer>4</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>30</integer></dict>
+        <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>18</integer><key>Minute</key><integer>30</integer></dict>
+    </array>
+
+    <key>StandardOutPath</key>
+    <string>/Users/carolineliem/Documents/idx-data/data/logs/launchd/daily_stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/carolineliem/Documents/idx-data/data/logs/launchd/daily_stderr.log</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>
