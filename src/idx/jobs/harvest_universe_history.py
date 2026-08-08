@@ -107,8 +107,20 @@ class DayOutcome:
         self.rows_written = rows_written
 
 
-def harvest_one_day(date: dt.date) -> DayOutcome:
-    """Commits its own transaction (crash-safe resumability, see module docstring)."""
+def harvest_one_day(date: dt.date, known_tickers: set[str]) -> DayOutcome:
+    """Commits its own transaction (crash-safe resumability, see module docstring).
+
+    `known_tickers` is a live, caller-owned cache of tickers already present
+    in `securities`, checked before every placeholder insert attempt so we
+    only ever call ensure_security_placeholder for a ticker once, ever —
+    not once per (ticker, day). Skipping this cache is what caused a
+    989-row table to balloon to 84MB: Postgres's ON CONFLICT DO NOTHING
+    still performs a speculative insertion internally, so ~1.6M redundant
+    insert-then-abort attempts against an already-populated row left ~1.6M
+    dead tuples behind — reclaimed once via VACUUM FULL, but the pattern
+    would silently re-inflate the table on every future harvest run if left
+    unfixed (regular autovacuum reclaims dead-tuple space for reuse, it
+    does not shrink the file)."""
     with session_scope() as session:
         if _already_processed(session, date):
             row = session.get(TradingCalendar, date)
@@ -142,7 +154,11 @@ def harvest_one_day(date: dt.date) -> DayOutcome:
             # so make sure a bare-bones row exists before the price upsert.
             # Must be the FK-only placeholder, not upsert_security: it must
             # never mark an unknown ticker is_active=True (see db/upserts.py).
-            ensure_security_placeholder(session, ticker)
+            # Only actually hits the DB once per never-before-seen ticker —
+            # see the bloat warning on this function's docstring.
+            if ticker not in known_tickers:
+                ensure_security_placeholder(session, ticker)
+                known_tickers.add(ticker)
             upsert_price_bar(session, values)
             rows_written += 1
 
@@ -189,7 +205,9 @@ def harvest(
     trading_days = 0
     rows_written_total = 0
 
-    log.info("harvest_start", start=str(start_date), end=str(end_date))
+    with session_scope() as session:
+        known_tickers = set(session.execute(select(Security.ticker)).scalars())
+    log.info("harvest_start", start=str(start_date), end=str(end_date), known_tickers=len(known_tickers))
 
     for date in _date_range(start_date, end_date):
         if date.weekday() >= 5:  # Sat/Sun — IDX never trades, skip without an API call
@@ -200,7 +218,7 @@ def harvest(
 
         dates_attempted += 1
         try:
-            outcome = harvest_one_day(date)
+            outcome = harvest_one_day(date, known_tickers)
             if outcome.made_api_call:
                 time.sleep(REQUEST_PAUSE_SECONDS)
             if outcome.was_trading_day is None:
