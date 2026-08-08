@@ -24,12 +24,11 @@ Runnable locally: python -m idx.jobs.db_stats
 """
 from __future__ import annotations
 
-import datetime as dt
-
 import structlog
 import typer
 from sqlalchemy import text
 
+from idx.config import PRODUCTION_DATA_CUTOFF
 from idx.db.session import get_engine
 
 log = structlog.get_logger()
@@ -39,13 +38,19 @@ TRADING_DAYS_PER_YEAR = 250
 PROJECTION_YEARS = (1, 3)
 
 # Phase 3 sizing assumption, as given: ~960 tickers x ~100 broker codes x
-# ~250 trading days =~ 24M rows/year. We don't have real broker coverage
-# numbers yet, so this stays a named constant, not a measurement.
+# ~250 trading days =~ 24M rows/year. THIS IS A WORST CASE, NOT A MEAN —
+# flagged explicitly (2026-08-08): only ~650 tickers trade on a typical
+# day (measured: see avg_rows_per_date below), and broker-code counts per
+# ticker are heavily skewed (liquid names 80+, thin names 5-10; realistic
+# average likely 15-30). A more realistic figure is probably nearer 4M
+# rows/year than 24M. DO NOT let this number drive a hosting decision —
+# the first Phase 3 task is fetching one real day of IDX broker summary,
+# measuring the actual distinct-broker-codes-per-ticker distribution, and
+# reprojecting from that. We don't have real broker coverage numbers yet,
+# so this stays a named worst-case constant, not a measurement.
 BROKER_FLOW_TICKERS = 960
 BROKER_FLOW_BROKER_CODES = 100
 BROKER_FLOW_ROWS_PER_YEAR = BROKER_FLOW_TICKERS * BROKER_FLOW_BROKER_CODES * TRADING_DAYS_PER_YEAR
-
-PRE_2020_CUTOFF = dt.date(2020, 1, 2)
 
 
 def _pretty(n: int) -> str:
@@ -137,7 +142,7 @@ def fetch_prices_daily_stats(conn) -> dict:
             from prices_daily
             """
         ),
-        {"cutoff": PRE_2020_CUTOFF},
+        {"cutoff": PRODUCTION_DATA_CUTOFF},
     ).one()
     return {
         "total_rows": total_rows,
