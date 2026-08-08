@@ -36,6 +36,7 @@ from idx.db.models import IngestRun, Security, TradingCalendar
 from idx.db.session import session_scope
 from idx.db.upserts import upsert_price_bar
 from idx.jobs.harvest_universe_history import harvest_one_day
+from idx.jobs.reconcile import reconcile
 from idx.jobs.validate import print_report, run_validation
 from idx.sources.yahoo import YahooSource
 
@@ -275,7 +276,14 @@ def main(
         )
         print_report(validation_report)
 
-    # TODO (Part E): cross-source reconciliation (price_discrepancies) here.
+    # Cross-source reconciliation: permanent canary for the next
+    # 2007-style upstream defect, and systematic per-ticker disagreement
+    # usually means an unhandled corporate action. Informational, not a
+    # run-status failure by itself — Part F's alerting treats "new
+    # discrepancies above a threshold" as its own trigger, separate from
+    # fetch/validation failures, so it isn't folded into `status` here.
+    with session_scope() as session:
+        discrepancies = reconcile(session, window_start, window_end)
 
     rows_written_total = yahoo_stats["new"] + yahoo_stats["revised"] + idx_stats["rows_written"]
     tickers_failed = yahoo_stats["failed"] + idx_stats["dates_failed"]
@@ -290,6 +298,8 @@ def main(
             error_parts.append(f"{tickers_failed} fetch failure(s)")
         if validation_report.failed:
             error_parts.append(f"{len(validation_report.failures)} validation failure(s)")
+        if discrepancies:
+            error_parts.append(f"{len(discrepancies)} price discrepancy(ies) (informational)")
         session.add(
             IngestRun(
                 job_name="daily",
@@ -315,6 +325,9 @@ def main(
         idx_trading_days=idx_stats["trading_days"],
         idx_dates_failed=idx_stats["dates_failed"],
         idx_dates_undetermined=idx_stats["dates_undetermined"],
+        validation_failures=len(validation_report.failures),
+        validation_suppressed=len(validation_report.suppressed),
+        price_discrepancies=len(discrepancies),
     )
 
 

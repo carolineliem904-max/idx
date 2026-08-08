@@ -230,3 +230,31 @@ class KnownIssue(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
     review_by: Mapped[dt.date | None] = mapped_column(Date)  # null = no review needed (permanent/historical fact)
+
+
+# --------------------------------------------------------------------------
+# 2.5 Cross-source reconciliation (Phase 2, not in original spec)
+# --------------------------------------------------------------------------
+
+
+class PriceDiscrepancy(Base):
+    """Permanent canary for the next 2007-style upstream defect, and — per
+    instruction — systematic per-ticker disagreement usually means an
+    unhandled corporate action, which is exactly the leakage that ruins
+    backtests quietly. Upserted per (ticker, date): re-checking the same
+    day refreshes the row rather than duplicating it."""
+
+    __tablename__ = "price_discrepancies"
+    __table_args__ = (UniqueConstraint("ticker", "date"),)
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    ticker: Mapped[str] = mapped_column(Text, ForeignKey("securities.ticker"), nullable=False)
+    date: Mapped[dt.date] = mapped_column(Date, nullable=False)
+    yahoo_close: Mapped[float | None] = mapped_column(Numeric(18, 4))
+    idx_close: Mapped[float | None] = mapped_column(Numeric(18, 4))
+    diff_abs: Mapped[float | None] = mapped_column(Numeric(18, 4))
+    diff_ticks: Mapped[float | None] = mapped_column(Numeric(10, 2))  # diff_abs / IDX tick size at that price
+    detected_at: Mapped[dt.datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    note: Mapped[str | None] = mapped_column(Text)
