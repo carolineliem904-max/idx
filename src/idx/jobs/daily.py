@@ -36,6 +36,7 @@ from idx.db.models import IngestRun, Security, TradingCalendar
 from idx.db.session import session_scope
 from idx.db.upserts import upsert_price_bar
 from idx.jobs.harvest_universe_history import harvest_one_day
+from idx.jobs.validate import print_report, run_validation
 from idx.sources.yahoo import YahooSource
 
 log = structlog.get_logger()
@@ -259,18 +260,36 @@ def main(
 
     idx_stats = idx_pass(window_dates, known_tickers)
 
-    # TODO (Part D): run jobs/validate.py inline here; mark run "partial"
-    # and alert if it fails hard, per spec §3.2 step 4.
+    # spec §3.2 step 4: run validate.py inline (in-process, not a
+    # subprocess) over this run's own rolling window. A non-suppressed
+    # failure marks the run "partial", same severity as a fetch failure —
+    # a fetch that "succeeds" but writes bad data is not actually a
+    # success.
+    with session_scope() as session:
+        validation_report = run_validation(session, window_start, window_end)
+    if validation_report.failed:
+        log.error(
+            "daily_validation_failed",
+            failures=len(validation_report.failures),
+            suppressed=len(validation_report.suppressed),
+        )
+        print_report(validation_report)
+
     # TODO (Part E): cross-source reconciliation (price_discrepancies) here.
 
     rows_written_total = yahoo_stats["new"] + yahoo_stats["revised"] + idx_stats["rows_written"]
     tickers_failed = yahoo_stats["failed"] + idx_stats["dates_failed"]
-    status = "success" if tickers_failed == 0 else "partial"
+    status = "success" if tickers_failed == 0 and not validation_report.failed else "partial"
 
     with session_scope() as session:
         append_daily_slice_to_parquet(
             session, [t[0] for t in ticker_list], window_start, window_end, run_date
         )
+        error_parts = []
+        if tickers_failed:
+            error_parts.append(f"{tickers_failed} fetch failure(s)")
+        if validation_report.failed:
+            error_parts.append(f"{len(validation_report.failures)} validation failure(s)")
         session.add(
             IngestRun(
                 job_name="daily",
@@ -280,7 +299,7 @@ def main(
                 rows_written=rows_written_total,
                 tickers_attempted=len(ticker_list),
                 tickers_failed=tickers_failed,
-                error_summary=None if tickers_failed == 0 else f"{tickers_failed} failure(s)",
+                error_summary="; ".join(error_parts) if error_parts else None,
             )
         )
 

@@ -202,3 +202,31 @@ class IngestRun(Base):
     tickers_attempted: Mapped[int | None] = mapped_column(Integer)
     tickers_failed: Mapped[int | None] = mapped_column(Integer)
     error_summary: Mapped[str | None] = mapped_column(Text)
+
+
+# --------------------------------------------------------------------------
+# 2.4 Known issues — validator suppression (Phase 2, not in original spec)
+# --------------------------------------------------------------------------
+
+
+class KnownIssue(Base):
+    """Suppression list jobs/validate.py consults. A suppressed finding is
+    still REPORTED (in a separate "known, suppressed" section) — this table
+    exists to stop the alert channel from crying wolf on already-understood
+    data quirks, not to hide them. Must exist before real alerting does, or
+    the channel gets ignored within a week and a genuine failure gets missed
+    alongside it."""
+
+    __tablename__ = "known_issues"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    scope: Mapped[str] = mapped_column(Text, nullable=False)  # ticker | date_range | both
+    ticker: Mapped[str | None] = mapped_column(Text, ForeignKey("securities.ticker"))
+    date_start: Mapped[dt.date | None] = mapped_column(Date)
+    date_end: Mapped[dt.date | None] = mapped_column(Date)
+    check_name: Mapped[str] = mapped_column(Text, nullable=False)  # matches a validate.py check
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[dt.datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    review_by: Mapped[dt.date | None] = mapped_column(Date)  # null = no review needed (permanent/historical fact)
