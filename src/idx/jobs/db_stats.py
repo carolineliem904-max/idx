@@ -120,7 +120,13 @@ def fetch_prices_daily_stats(conn) -> dict:
     computed directly from what's actually in prices_daily — more
     representative of steady-state daily-job growth than ingest_runs
     history, which so far only contains one-time bulk backfill events
-    (Phase 1a/1b), not daily-cadence runs."""
+    (Phase 1a/1b), not daily-cadence runs.
+
+    Deliberately reads the base table, not prices_daily_latest: this is a
+    physical-storage report (what's actually on disk, including revision
+    history), not a logical "current value" read — those are different
+    questions and this file only ever answers the first one.
+    """
     total_rows, distinct_dates, pre_2020_yahoo_rows = conn.execute(
         text(
             """

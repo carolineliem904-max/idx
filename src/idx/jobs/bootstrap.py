@@ -21,7 +21,7 @@ from pathlib import Path
 
 import structlog
 import typer
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from idx.db.models import IngestRun, PriceDaily, Security
 from idx.db.session import session_scope
@@ -77,10 +77,10 @@ def backfill_prices_for_ticker(session, source: PriceSource, security: Security)
     """Fetch full history for one ticker and upsert into prices_daily.
 
     Re-running bootstrap for the same ticker/date/source is idempotent:
-    values are refreshed in place rather than duplicated (spec §0 principle
-    5). This differs from jobs/daily.py, where a value change appends a new
-    row with a fresh ingested_at to preserve revision history (spec §0
-    principle 2) — bootstrap has no prior "as-of" observation to preserve.
+    upsert_price_bar only ever writes a new row when the value is actually
+    new or changed (spec §0 principle 5), so a resumed/repeated bootstrap
+    run doesn't duplicate rows under the widened (ticker, date, source,
+    ingested_at) PK the way a blind append would.
     """
     df = source.fetch_history(security.yahoo_symbol, start=None, end=None)
     if df.empty:
@@ -102,8 +102,9 @@ def backfill_prices_for_ticker(session, source: PriceSource, security: Security)
             "value_traded": _none_if_nan(bar["value_traded"]),
             "frequency": _none_if_nan(bar["frequency"]),
         }
-        upsert_price_bar(session, values)
-        rows_written += 1
+        outcome = upsert_price_bar(session, values)
+        if outcome != "unchanged":
+            rows_written += 1
 
     return rows_written
 
@@ -117,29 +118,28 @@ def _none_if_nan(value):
 
 
 def snapshot_to_parquet(session, tickers: list[str], run_date: dt.date) -> None:
-    """Spec §3.1 step 6: snapshot to Parquet under data/cold/prices_daily/."""
+    """Spec §3.1 step 6: snapshot to Parquet under data/cold/prices_daily/.
+
+    Reads prices_daily_latest, not the base table — a feature-building
+    snapshot should reflect the current best-known value per (ticker,
+    date, source), not every revision ever recorded (spec §3.2 "the
+    latest wins in views").
+    """
     import pandas as pd
 
     rows = session.execute(
-        select(PriceDaily).where(PriceDaily.ticker.in_(tickers))
-    ).scalars()
-    records = [
-        {
-            "ticker": r.ticker,
-            "date": r.date,
-            "source": r.source,
-            "open_raw": r.open_raw,
-            "high_raw": r.high_raw,
-            "low_raw": r.low_raw,
-            "close_raw": r.close_raw,
-            "close_adj": r.close_adj,
-            "volume": r.volume,
-            "value_traded": r.value_traded,
-            "frequency": r.frequency,
-            "ingested_at": r.ingested_at,
-        }
-        for r in rows
-    ]
+        text(
+            """
+            SELECT ticker, date, source, open_raw, high_raw, low_raw,
+                   close_raw, close_adj, volume, value_traded, frequency,
+                   ingested_at
+            FROM prices_daily_latest
+            WHERE ticker = ANY(:tickers)
+            """
+        ),
+        {"tickers": tickers},
+    ).mappings()
+    records = [dict(r) for r in rows]
     if not records:
         log.warning("no_rows_to_snapshot")
         return
@@ -167,13 +167,16 @@ def derive_trading_calendar(session) -> int:
     that overwrite happens. Pre-2020 stays on this heuristic; the spec's
     "then hand-review and annotate holidays" step is still Caroline's, not
     automated here.
+
+    Reads prices_daily_latest, not the base table: with revision history
+    now possible (widened PK), a naive read of the base table would let a
+    ticker with 2 recorded versions of the same day count twice toward
+    that day's ">=30% of tickers" threshold.
     """
     result = session.execute(
-        select(
-            PriceDaily.date,
-            PriceDaily.ticker,
-            PriceDaily.close_raw,
-        ).where(PriceDaily.source == "yahoo")
+        text(
+            "SELECT date, ticker, close_raw FROM prices_daily_latest WHERE source = 'yahoo'"
+        )
     ).all()
     if not result:
         log.warning("trading_calendar_skipped_no_price_data")

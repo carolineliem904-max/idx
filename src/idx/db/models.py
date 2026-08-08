@@ -54,9 +54,28 @@ class Security(Base):
 class PriceDaily(Base):
     __tablename__ = "prices_daily"
 
+    # PK is (ticker, date, source, ingested_at) — NOT (ticker, date, source)
+    # as spec §2.1 originally read. That version could hold at most one row
+    # per key, which is structurally incompatible with spec §3.2's revision
+    # behavior ("write a new row with a fresh ingested_at rather than
+    # mutating... history is preserved for audit") — the schema simply
+    # couldn't hold two versions of the same trading day. Phase 0/1's
+    # bootstrap upserts got away with overwriting in place because a
+    # one-time backfill has no prior observation to preserve; jobs/daily.py
+    # (Phase 2) is the first job where this actually matters, and getting
+    # it wrong is a real point-in-time leakage bug (spec principle #1): an
+    # as-of read between an original ingest and a later correction would
+    # silently see the future-corrected value. Widened here; see the
+    # `prices_daily_latest` view (created in the same migration, not an
+    # ORM model — query it directly) for "current state" reads, and
+    # db/queries.py for the as-of-aware read every point-in-time consumer
+    # (including the Phase 4 feature builder) must use instead.
     ticker: Mapped[str] = mapped_column(Text, ForeignKey("securities.ticker"), primary_key=True)
     date: Mapped[dt.date] = mapped_column(Date, primary_key=True, nullable=False)
     source: Mapped[str] = mapped_column(Text, primary_key=True, nullable=False)  # 'yahoo' | 'idx' | 'sectors'
+    ingested_at: Mapped[dt.datetime] = mapped_column(
+        DateTime(timezone=True), primary_key=True, nullable=False, server_default=func.now()
+    )
     open_raw: Mapped[float | None] = mapped_column(Numeric(18, 4))
     high_raw: Mapped[float | None] = mapped_column(Numeric(18, 4))
     low_raw: Mapped[float | None] = mapped_column(Numeric(18, 4))
@@ -65,9 +84,6 @@ class PriceDaily(Base):
     volume: Mapped[int | None] = mapped_column(BigInteger)  # shares, not lots
     value_traded: Mapped[float | None] = mapped_column(Numeric(20, 2))  # IDR
     frequency: Mapped[int | None] = mapped_column(Integer)
-    ingested_at: Mapped[dt.datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
 
 
 class CorporateAction(Base):

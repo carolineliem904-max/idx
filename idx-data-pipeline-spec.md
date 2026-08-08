@@ -81,8 +81,22 @@ prices_daily (
   frequency         integer,                 -- number of trades, if available
   source            text not null,           -- 'yahoo' | 'idx' | 'sectors'
   ingested_at       timestamptz not null default now(),
-  primary key (ticker, date, source)
+  primary key (ticker, date, source, ingested_at)
+  -- Widened from (ticker, date, source) during Phase 2 (2026-08-08): that
+  -- narrower key could hold at most one row per key, which is structurally
+  -- incompatible with the revision behavior this same section originally
+  -- specified below ("write a new row with a fresh ingested_at rather than
+  -- mutating") — the schema simply couldn't hold two versions of a trading
+  -- day. See prices_daily_latest below for the "current state" read path.
 )
+
+-- "the latest wins in views" (see daily.py below) — this is that view.
+-- Every non-audit reader should query this, not prices_daily directly,
+-- unless it specifically wants full revision history.
+create view prices_daily_latest as
+  select distinct on (ticker, date, source) *
+  from prices_daily
+  order by ticker, date, source, ingested_at desc;
 
 corporate_actions (
   id                bigserial primary key,
@@ -199,7 +213,7 @@ Logic:
 
 1. Check `trading_calendar`. If today is not a trading day, log a skipped run and exit 0.
 2. Fetch a **rolling 7-calendar-day window**, not just yesterday. Yahoo revises and occasionally back-fills late. The 7-day window catches corrections for free.
-3. Upsert into `prices_daily` on `(ticker, date, source)`. If values differ from the existing row, write a new row with a fresh `ingested_at` rather than mutating.
+3. For each `(ticker, date, source)`, compare the fetched values against `prices_daily_latest`. Write a new row with a fresh `ingested_at` ONLY if something actually differs (or nothing exists yet) — never blindly append. The 7-day rolling window re-touches the same days every run, so most re-fetches are identical to what's already stored; writing unconditionally would silently multiply `prices_daily` by ~7x with no new information and make "revisions written" meaningless as a signal instead of a real one. A revision is supposed to be a rare event — log a count of them per run and surface it in the daily report; a spike is worth investigating.
 4. Run `jobs/validate.py` inline; if it fails hard, mark the run `partial` and alert.
 5. Append the day's slice to Parquet.
 

@@ -159,8 +159,9 @@ def harvest_one_day(date: dt.date, known_tickers: set[str]) -> DayOutcome:
             if ticker not in known_tickers:
                 ensure_security_placeholder(session, ticker)
                 known_tickers.add(ticker)
-            upsert_price_bar(session, values)
-            rows_written += 1
+            outcome = upsert_price_bar(session, values)
+            if outcome != "unchanged":
+                rows_written += 1
 
         _upsert_calendar_day(session, date, True, f"{NOTE_PREFIX} verified via GetStockSummary")
         return DayOutcome(made_api_call=True, was_trading_day=True, rows_written=rows_written)
@@ -267,6 +268,11 @@ def reconcile_delisted() -> None:
     "locally saved historical listing/delisting announcements" as the ideal
     source; we don't have those, so this is the best available substitute
     and is documented as such, not presented as authoritative).
+
+    Reads the base prices_daily table, not prices_daily_latest, throughout
+    — deliberately: every query here is "does this ticker/date exist" or
+    "what's the max date", never a value comparison, so it's unaffected by
+    whether a (ticker, date, source) has one recorded version or several.
     """
     started_at = dt.datetime.now(dt.timezone.utc)
     with session_scope() as session:

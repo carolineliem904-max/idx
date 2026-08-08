@@ -4,7 +4,9 @@ place instead of being reimplemented per job."""
 from __future__ import annotations
 
 import datetime as dt
+from decimal import Decimal
 
+from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from idx.db.models import PriceDaily, Security
@@ -76,19 +78,77 @@ def ensure_security_placeholder(session, ticker: str) -> None:
     session.execute(stmt)
 
 
-def upsert_price_bar(session, values: dict) -> None:
-    """Insert or refresh one `prices_daily` row, keyed on (ticker, date, source).
+# Decimal places matching each column's declared NUMERIC scale (spec §2.1).
+# Incoming values are quantized to these before comparison so a value
+# read back from Postgres (already rounded to this scale) and a freshly
+# fetched one compare exactly, instead of drifting apart from float/Decimal
+# representation noise and registering as a false "revision".
+_PRICE_COLUMN_SCALES = {
+    "open_raw": 4,
+    "high_raw": 4,
+    "low_raw": 4,
+    "close_raw": 4,
+    "close_adj": 6,
+    "value_traded": 2,
+}
 
-    Refreshing in place (not appending) is correct for bootstrap/backfill
-    jobs, which have no prior "as-of" observation to preserve. jobs/daily.py
-    (spec §3.2) is the one place that must instead append a new row with a
-    fresh ingested_at when a value changes, to preserve revision history
-    (spec §0 principle 2).
+
+def _quantize(value, column: str):
+    if value is None:
+        return None
+    scale = _PRICE_COLUMN_SCALES.get(column)
+    if scale is None:  # volume, frequency — plain integers, no rounding needed
+        return value
+    return Decimal(str(value)).quantize(Decimal(1).scaleb(-scale))
+
+
+def upsert_price_bar(session, values: dict) -> str:
+    """Insert a new prices_daily row ONLY if this is the first observation
+    for (ticker, date, source), or the incoming values differ from the
+    current latest version. Returns "new" | "revised" | "unchanged".
+
+    This is the write path spec §3.2 describes: revisions are appended as
+    new rows with a fresh ingested_at, never mutated in place (spec §0
+    principle 2) — but must NEVER blindly append regardless of whether
+    anything actually changed. jobs/daily.py re-fetches a rolling 7-day
+    window every run, so most re-reads are identical to what's already
+    stored; blindly appending would turn ~7 days x ~962 tickers x 2
+    sources =~ 13k redundant rows PER RUN (~5M/year) that record no new
+    information, and would make a revision-count spike in the daily report
+    meaningless noise instead of a real signal.
+
+    Used by every prices_daily writer — bootstrap and the historical
+    harvester too, not just daily.py. Without this everywhere, re-running
+    bootstrap.py or harvest_universe_history.py would ALSO now silently
+    duplicate the whole table on every rerun: the widened PK (ticker,
+    date, source, ingested_at) no longer rejects a same-key re-insert the
+    way the old (ticker, date, source) PK did.
+
+    NOT safe against a second writer touching the same (ticker, date,
+    source) between the read and the write — acceptable because every job
+    that writes prices_daily runs sequentially, never two at once against
+    overlapping data.
     """
-    stmt = pg_insert(PriceDaily).values(**values)
-    update_cols = {c: getattr(stmt.excluded, c) for c in _PRICE_UPSERT_COLS if c in values}
-    update_cols["ingested_at"] = dt.datetime.now(dt.timezone.utc)
-    stmt = stmt.on_conflict_do_update(
-        index_elements=["ticker", "date", "source"], set_=update_cols
-    )
-    session.execute(stmt)
+    current = session.execute(
+        text(
+            """
+            SELECT open_raw, high_raw, low_raw, close_raw, close_adj,
+                   volume, value_traded, frequency
+            FROM prices_daily_latest
+            WHERE ticker = :ticker AND date = :date AND source = :source
+            """
+        ),
+        {"ticker": values["ticker"], "date": values["date"], "source": values["source"]},
+    ).mappings().one_or_none()
+
+    incoming_quantized = {c: _quantize(values.get(c), c) for c in _PRICE_UPSERT_COLS}
+
+    if current is not None and all(
+        current[c] == incoming_quantized[c] for c in _PRICE_UPSERT_COLS
+    ):
+        return "unchanged"
+
+    insert_values = dict(values)
+    insert_values["ingested_at"] = dt.datetime.now(dt.timezone.utc)
+    session.execute(pg_insert(PriceDaily).values(**insert_values))
+    return "new" if current is None else "revised"
