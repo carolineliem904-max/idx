@@ -30,6 +30,7 @@ idx-data/
   launchd/                   macOS launchd plists — dev scheduling stand-in, see HANDOFF.md
   scripts/                   launchd wrapper shells (per-run timestamped logs)
   seed/                      dev-only CSV (bootstrap.py --seed-csv override path)
+  review/                    generated human-review artifacts — NEVER auto-applied to the DB, see HANDOFF.md
   src/idx/
     config.py                 DATABASE_URL, PRODUCTION_DATA_CUTOFF, local_pg_container()
     notify.py                 Notifier ABC + ConsoleNotifier (get_notifier() picks backend)
@@ -49,9 +50,11 @@ idx-data/
       seed_universe.py            Phase 1a: active universe from IDX's own directory
       harvest_universe_history.py Phase 1b: historical IDX harvest, delisted-tail discovery
       daily.py                    Phase 2: incremental daily update, both sources
-      validate.py                 data quality gate, known_issues-aware
+      validate.py                 data quality gate, known_issues-aware; full-history-audit lives here too
       seed_known_issues.py        seeds known_issues from confirmed findings
-      reconcile.py                 cross-source (Yahoo vs IDX) discrepancy detection
+      reconcile.py                 cross-source (Yahoo vs IDX) discrepancy detection, writes price_discrepancies
+      classify_discrepancies.py    A/B/C/D root-cause classification of what reconcile.py finds — see HANDOFF.md
+      generate_ca_review.py        writes review/corporate_actions_candidates.md — review only, never writes to the DB
       dead_mans_switch.py          standalone staleness check — NOT called from daily.py
       backup.py                   pg_dump/restore/verify
       db_stats.py                  sizing diagnostics
@@ -86,7 +89,10 @@ backtests beautifully and loses money live.
 2. **Append, never overwrite.** Revisions are new rows with a later
    `ingested_at`; the latest wins in views, history stays for audit.
 3. **Store raw and adjusted side by side.** Raw for microstructure work,
-   adjusted for return series.
+   adjusted for return series. (As of 2026-08-09: "raw" needs one more
+   qualifier — see SOURCE AUTHORITY below. Yahoo's `close_raw` turned out
+   not to be reliably raw. This principle still holds; which *source's*
+   `close_raw` you trust for a given purpose is now more specific.)
 4. **Universe is a time series, not a list.** Delisted tickers stay in
    the DB with `delisting_date` set. A backtest that only sees survivors
    is worthless.
@@ -95,6 +101,15 @@ backtests beautifully and loses money live.
 
 ## Conventions
 
+- **SOURCE AUTHORITY (added 2026-08-09):** IDX is authoritative for
+  `close_raw`, from 2020-01-02 onward. Yahoo is authoritative for
+  `close_adj`. Neither source is "the" source — they are authoritative
+  for *different columns*, and any code reading price levels must know
+  which one it needs. Level-based work (tick size, ARA/ARB bands, gap
+  detection, price-based liquidity filters) reads IDX's `close_raw`.
+  Return-series work reads Yahoo's `close_adj`. Full evidence and the
+  investigation that produced this in HANDOFF.md — don't re-derive it,
+  it's already been proven three separate ways.
 - **`prices_daily_latest` is the default read path.** Never query
   `prices_daily` directly for "what's the current value" — that base
   table holds full revision history (principle #2), and a naive read of
@@ -114,6 +129,17 @@ backtests beautifully and loses money live.
   directly outside tests. Skipping this is what would silently multiply
   the table on every rerun (the widened PK no longer rejects a same-key
   re-insert the way the old one did).
+- **`jobs/validate.py full-history-audit` is a standing check, not a
+  one-off.** It catches category-B-style single-source price freezes
+  (see HANDOFF.md) that the normal rolling-window checks structurally
+  cannot see. Run it after any bulk ingest (a fresh backfill, a
+  historical harvest re-run) — not just periodically.
+- **Generated review files (`review/*.md`) never get applied to the
+  database automatically.** Anything under `review/` is a proposal for a
+  human to read, tier by tier, and approve explicitly. If you find
+  yourself writing code that reads a `review/` file and writes to the DB
+  without a human step in between, stop — that defeats the entire point
+  of the tier structure.
 - **One commit per validated phase, not per file.** A commit is a
   checkpoint you can actually roll back to — validate before committing,
   not after.
@@ -125,7 +151,7 @@ backtests beautifully and loses money live.
 - **Known issues are for permanent, understood defects — not temporary
   states.** A trading suspension is not a `known_issues` row; it ends,
   and permanent suppression would hide a real re-listing (see
-  HANDOFF.md's open thread on this).
+  HANDOFF.md's open threads).
 
 ## Standing instructions
 
@@ -140,3 +166,27 @@ backtests beautifully and loses money live.
   produces duplicate rows — loud, catchable with a one-line assertion. A
   silently-wrong value is the failure mode everything here is built to
   avoid.
+- **SILENT SUCCESS IS THE DOMINANT FAILURE MODE IN THIS PROJECT.** Not a
+  category among others — the default suspicion. Four confirmed
+  instances so far, each one a check or a design that LOOKED clean and
+  wasn't:
+  1. `ON CONFLICT DO NOTHING` still writes a dead tuple even on a true
+     no-op, silently bloating `securities` to 84MB with zero errors
+     anywhere.
+  2. A SQLAlchemy column default silently set every newly-discovered
+     ticker `is_active=True`, making the delisted-ticker diff empty by
+     construction — a real bug that produced a *plausible*, not
+     obviously-wrong, zero-count result.
+  3. The rejected companion-audit-table design for point-in-time reads:
+     forgetting to merge the side table would have served a
+     future-corrected value to an as-of read with no error, no
+     duplicate, no signal anything was wrong.
+  4. The A/B/C/D freeze detector's own noise floor misfiled ADMF's clean
+     289-day Yahoo freeze as "both frozen" (category C) — a two-day
+     coincidental repeat on the *moving* side was enough to hide a real
+     289-day defect on the *frozen* side. Took a dedicated regression
+     test to lock the fix in.
+  When a check passes cleanly, or a result looks plausible, ask
+  explicitly: **can this fail silently, and would I have noticed if it
+  had?** If the answer isn't a confident no, that's the next thing to
+  verify — not the next thing to trust.
