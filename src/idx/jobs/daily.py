@@ -32,12 +32,14 @@ import structlog
 import typer
 from sqlalchemy import select, text
 
+from idx.alerting import evaluate_daily_run
 from idx.db.models import IngestRun, Security, TradingCalendar
 from idx.db.session import session_scope
 from idx.db.upserts import upsert_price_bar
 from idx.jobs.harvest_universe_history import harvest_one_day
 from idx.jobs.reconcile import reconcile
 from idx.jobs.validate import print_report, run_validation
+from idx.notify import get_notifier
 from idx.sources.yahoo import YahooSource
 
 log = structlog.get_logger()
@@ -328,6 +330,16 @@ def main(
         validation_failures=len(validation_report.failures),
         validation_suppressed=len(validation_report.suppressed),
         price_discrepancies=len(discrepancies),
+    )
+
+    evaluate_daily_run(
+        notifier=get_notifier(),
+        run_date=run_date,
+        status=status,
+        validation_report=validation_report,
+        discrepancy_count=len(discrepancies),
+        tickers_failed=tickers_failed,
+        rows_written=rows_written_total,
     )
 
 
