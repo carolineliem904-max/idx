@@ -355,6 +355,55 @@ def check_insufficient_history(session) -> list[Finding]:
     ]
 
 
+def check_frozen_price_divergence(session, min_run_days: int = 5) -> list[Finding]:
+    """Standing check, spec extension (2026-08-09), added because category
+    B of the Yahoo/IDX reconciliation investigation is a distinct failure
+    class from anything else in this file: `close_raw` identical across
+    many consecutive days on ONE source while the other shows real
+    volume/movement, with NO other visible defect — no gap, no null, no
+    error. `ADMF` sat frozen at exactly 6100.0 for 289 days; `BNBR` for
+    767. A model reads either as a genuinely quiet stock. Same
+    silent-success failure mode as the ON CONFLICT DO NOTHING dead-tuple
+    bug (Phase 2 Part A) and the reason the companion-audit-table design
+    was rejected for the PK-widening decision (Phase 2 schema fix) — this
+    is the third time that exact failure shape has shown up in this
+    codebase.
+
+    Deliberately NOT date-range scoped and NOT part of run_validation's
+    default set daily.py calls every run — a Yahoo data freeze has no
+    natural "today" boundary, it's a standing fact about the whole
+    series, and rescanning full history on every daily run would be
+    wasteful. Invoke via `python -m idx.jobs.validate full-history-audit`.
+    """
+    from idx.jobs.classify_discrepancies import fetch_paired_series, find_frozen_runs
+
+    tickers = [
+        r.ticker
+        for r in session.execute(text("SELECT ticker FROM securities WHERE is_active")).all()
+    ]
+    by_ticker = fetch_paired_series(session, tickers)
+
+    findings = []
+    for ticker, entries in by_ticker.items():
+        for run in find_frozen_runs(ticker, entries):
+            if run.n_days < min_run_days:
+                continue
+            if run.frozen_side not in ("yahoo", "idx") or not run.other_side_moved:
+                continue  # 'both frozen' is category C (thread #2 territory), not this check
+            findings.append(
+                Finding(
+                    check_name="frozen_price_divergence",
+                    ticker=ticker,
+                    date=run.start,
+                    detail=(
+                        f"{ticker}: {run.frozen_side} close_raw frozen for {run.n_days} days "
+                        f"({run.start}..{run.end}) while the other source shows real movement."
+                    ),
+                )
+            )
+    return findings
+
+
 def run_validation(session, date_start: dt.date, date_end: dt.date) -> ValidationReport:
     findings: list[Finding] = []
     findings += check_zero_rows_on_trading_day(session, date_start, date_end)
@@ -395,6 +444,24 @@ def run(
 
     with session_scope() as session:
         report = run_validation(session, start_date, end_date)
+
+    print_report(report)
+    if report.failed:
+        raise typer.Exit(code=1)
+
+
+@app.command("full-history-audit")
+def full_history_audit(
+    min_run_days: int = typer.Option(5, help="Minimum frozen-run length to report."),
+) -> None:
+    """Standing checks that need the whole series, not a rolling window —
+    currently just check_frozen_price_divergence (category B). Run this
+    periodically (manually, or its own scheduled job — not wired into
+    daily.py's per-run set), not as part of the normal daily pass."""
+    with session_scope() as session:
+        findings = check_frozen_price_divergence(session, min_run_days=min_run_days)
+        known_issues = _load_known_issues(session)
+        report = _apply_suppression(findings, known_issues)
 
     print_report(report)
     if report.failed:
