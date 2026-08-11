@@ -3,14 +3,1096 @@
 **Nothing in this file has been applied to the database.** Every row is a proposal derived from Yahoo/IDX reconciliation (jobs/classify_discrepancies.py), not a confirmed fact. Review tier by tier; nothing gets committed to `corporate_actions` without explicit sign-off, tier by tier.
 
 Methodology: a regime-transition is flagged when both sources show real, matching (non-zero) volume on the transition day and the ratio does not revert to its pre-transition value afterward. `ratio_from` is what Yahoo's close showed relative to IDX's BEFORE the transition (IDX raw is the tick-grid authority); `ratio_to` is always ~1.0 (both sources agree afterward, by construction of what counts as a transition here).
+Every price-derived row below also carries an **IDX ledger cross-check** line (sources/idx_corporate_actions.py, ListingActivity/GetIssuedHistory) — an independent, structured IDX record, not the price-ratio method's own output. It is a cross-check, not ground truth: it has real coverage gaps of its own (see the source module docstring), so 'no corroborating row found' is reported as a finding, not silently treated as disqualifying.
+
+## Tier 0 — IDX ledger-confirmed, no price-ratio corroboration (confidence 4)
+
+269 candidates. `stockSplit`/`reverseStock`/`sahamBonus` rows from IDX's own ListingActivity ledger with NO matching price-ratio transition — usually because this ticker's Yahoo/IDX pair never diverged enough to trip Track 2 detection, not because the event didn't happen. Ratio is derived directly from IDX's own before/after share counts (`after / (after - added)`), independently validated exactly against TPIA (4.0, confirmed 1:4) and BBNI (2.0, confirmed 1:2) — see sources/idx_corporate_actions.py. No price evidence table exists for these (that's precisely what's missing), so `listing_date` is shown instead of `ex_date` — do not assume they're the same (see that module's docstring point 1: confirmed ~0-day lag for these three action types specifically, unlike rights issues).
+
+### AALI — listing_date 1999-07-06 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.2000, shares_added=251,600,000, shares_after=1,509,600,000
+
+### ABDA — listing_date 1996-02-26 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.8252, shares_added=7,860,800, shares_after=17,386,800
+
+### ABDA — listing_date 1996-12-16 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0173, shares_added=17,686,800, shares_after=35,073,600
+
+### ABDA — listing_date 2003-08-07 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.3009, shares_added=31,836,240, shares_after=137,657,040
+
+### ADES — listing_date 1997-08-07 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.3401, shares_added=38,000,000, shares_after=149,720,000
+
+### ADMG — listing_date 1995-08-28 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=160,000,000, shares_after=320,000,000
+
+### ADMG — listing_date 1997-11-10 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=1,120,000,000, shares_after=2,240,000,000
+
+### AIMS — listing_date 2016-08-02 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=110,000,000, shares_after=220,000,000
+
+### ALKA — listing_date 1991-06-20 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=3.0000, shares_added=13,000,000, shares_after=19,500,000
+
+### ALMI — listing_date 2014-02-12 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=308,000,000, shares_after=616,000,000
+
+### ANDI — listing_date 2019-11-05 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=7,480,000,000, shares_after=9,350,000,000
+
+### AQUA — listing_date 1994-10-14 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.5000, shares_added=3,000,000, shares_after=9,000,000
+
+### AQUA — listing_date 1995-10-17 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.3000, shares_added=2,700,000, shares_after=11,700,000
+
+### ARNA — listing_date 2009-09-11 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=917,678,872, shares_after=1,835,357,744
+
+### ASBI — listing_date 1997-10-13 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=4,600,000, shares_after=9,200,000
+
+### ASBI — listing_date 1997-10-14 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.5000, shares_added=13,800,000, shares_after=23,000,000
+
+### ASBI — listing_date 2000-11-01 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=3.5000, shares_added=57,499,994, shares_after=80,499,994
+
+### ASBI — listing_date 2016-07-26 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=174,193,236, shares_after=348,386,472
+
+### ASGR — listing_date 1995-02-13 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.5000, shares_added=9,225,000, shares_after=15,375,000
+
+### ASGR — listing_date 1997-12-03 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=65,343,750, shares_after=130,687,500
+
+### ASGR — listing_date 2000-03-07 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=10.0000, shares_added=1,176,187,500, shares_after=1,306,875,000
+
+### ASII — listing_date 1994-09-08 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=4.0260, shares_added=871,912,800, shares_after=1,160,050,400
+
+### ASII — listing_date 1997-09-01 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0022, shares_added=1,162,831,237, shares_after=2,323,162,474
+
+### BATA — listing_date 2013-09-04 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=100.0000, shares_added=1,287,000,000, shares_after=1,300,000,000
+
+### BAYU — listing_date 1996-07-01 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=120,000,000, shares_after=240,000,000
+
+### BAYU — listing_date 1996-07-19 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.0909, shares_added=21,818,182, shares_after=261,818,182
+
+### BAYU — listing_date 1997-08-27 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.1429, shares_added=37,402,598, shares_after=299,220,780
+
+### BBLD — listing_date 1993-11-30 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.8000, shares_added=12,000,000, shares_after=27,000,000
+
+### BBLD — listing_date 1995-06-20 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=45,000,000, shares_after=90,000,000
+
+### BBLD — listing_date 1999-07-26 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=90,000,000, shares_after=180,000,000
+
+### BEBS — listing_date 2022-12-21 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=36,000,000,000, shares_after=45,000,000,000
+
+### BIMA — listing_date 1997-11-03 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=25,000,000, shares_after=50,000,000
+
+### BIMA — listing_date 1997-11-04 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.7200, shares_added=36,000,000, shares_after=86,000,000
+
+### BIMA — listing_date 2016-08-29 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=218,087,858, shares_after=436,175,716
+
+### BRNA — listing_date 1998-08-18 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=23,000,000, shares_after=46,000,000
+
+### BRNA — listing_date 1998-08-19 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.5000, shares_added=23,000,000, shares_after=69,000,000
+
+### BTEK — listing_date 2017-08-15 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=8.0000, shares_added=40,492,809,329, shares_after=46,277,496,376
+
+### BTON — listing_date 2016-08-01 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=4.0000, shares_added=540,000,000, shares_after=720,000,000
+
+### CARS — listing_date 2019-06-11 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=10.0000, shares_added=13,500,000,000, shares_after=15,000,000,000
+
+### CEKA — listing_date 2015-08-03 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=297,500,000, shares_after=595,000,000
+
+### CFIN — listing_date 1993-08-05 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.3333, shares_added=991,572, shares_after=3,966,572
+
+### CFIN — listing_date 1995-07-24 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.5000, shares_added=1,983,457, shares_after=5,950,029
+
+### CFIN — listing_date 1998-10-19 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=44,400,051, shares_after=88,800,102
+
+### CFIN — listing_date 1998-12-10 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.0980, shares_added=8,705,734, shares_after=97,505,836
+
+### CFIN — listing_date 2003-07-02 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=463,606,040, shares_after=927,212,080
+
+### CMPP — listing_date 2014-09-03 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=4.0000, shares_added=162,000,000, shares_after=216,000,000
+
+### CPIN — listing_date 1997-05-26 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=112,613,534, shares_after=225,227,068
+
+### CPIN — listing_date 1997-07-02 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.2500, shares_added=56,306,767, shares_after=281,533,835
+
+### CPIN — listing_date 2001-01-15 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=1,126,135,340, shares_after=1,407,669,175
+
+### CPIN — listing_date 2007-11-01 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=1,642,280,704, shares_after=3,284,561,408
+
+### CTBN — listing_date 1993-04-01 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=5.0000, shares_added=24,000,000, shares_after=30,000,000
+
+### CTBN — listing_date 1999-06-21 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.6000, shares_added=30,000,000, shares_after=80,000,000
+
+### DART — listing_date 1992-06-30 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=66,000,000, shares_after=132,000,000
+
+### DART — listing_date 1994-11-21 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.6667, shares_added=110,000,000, shares_after=275,000,000
+
+### DART — listing_date 1997-07-28 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=275,000,000, shares_after=550,000,000
+
+### DART — listing_date 2007-08-10 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=3.6013, shares_added=1,430,695,481, shares_after=1,980,695,481
+
+### DEFI — listing_date 2015-11-23 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=10.0000, shares_added=608,400,000, shares_after=676,000,000
+
+### DILD — listing_date 1998-01-26 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.9000, shares_added=219,264,300, shares_after=462,891,300
+
+### DILD — listing_date 1998-01-26 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=462,891,300, shares_after=925,782,600
+
+### DLTA — listing_date 1985-07-08 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.1200, shares_added=41,688, shares_after=389,088
+
+### DLTA — listing_date 1993-10-15 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=3.0000, shares_added=1,430,084, shares_after=2,145,126
+
+### DLTA — listing_date 2015-11-03 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=50.0000, shares_added=784,645,869, shares_after=800,659,050
+
+### DPNS — listing_date 1991-09-10 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=6,000,000, shares_after=12,000,000
+
+### DPNS — listing_date 1994-10-10 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.3750, shares_added=9,436,500, shares_after=34,600,500
+
+### DPNS — listing_date 1998-10-12 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=34,600,500, shares_after=69,201,000
+
+### DPNS — listing_date 2000-09-08 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.2000, shares_added=20,990,970, shares_after=125,945,820
+
+### DPNS — listing_date 2005-08-04 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.2239, shares_added=28,200,882, shares_after=154,146,702
+
+### DPNS — listing_date 2006-06-08 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=154,146,702, shares_after=308,293,404
+
+### DPNS — listing_date 2007-07-27 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.0741, shares_added=22,836,548, shares_after=331,129,952
+
+### DSFI — listing_date 2001-01-22 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=712,464,000, shares_after=890,580,000
+
+### DSNG — listing_date 2015-10-19 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=8,478,800,000, shares_after=10,598,500,000
+
+### DSUC — listing_date 1999-10-18 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.5000, shares_added=300,000,000, shares_after=500,000,000
+
+### DUTI — listing_date 1996-08-22 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.2500, shares_added=69,375,000, shares_after=346,875,000
+
+### DUTI — listing_date 1997-02-24 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=346,875,000, shares_after=693,750,000
+
+### DVLA — listing_date 1995-10-12 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=31,250,000, shares_after=62,500,000
+
+### DVLA — listing_date 1995-10-26 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=62,500,000, shares_after=125,000,000
+
+### DYNA — listing_date 1992-07-01 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.0342, shares_added=359,400, shares_after=10,859,400
+
+### DYNA — listing_date 1993-12-08 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=10,859,400, shares_after=21,718,800
+
+### DYNA — listing_date 1995-02-13 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=32,578,200, shares_after=65,156,400
+
+### DYNA — listing_date 1997-08-11 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=130,312,800, shares_after=260,625,600
+
+### DYNA — listing_date 1997-10-08 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.1500, shares_added=39,093,840, shares_after=299,719,440
+
+### EPMT — listing_date 1995-07-06 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.9000, shares_added=54,000,000, shares_after=114,000,000
+
+### EPMT — listing_date 1997-09-29 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=114,000,000, shares_after=228,000,000
+
+### EPMT — listing_date 1999-09-13 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=228,000,000, shares_after=456,000,000
+
+### EPMT — listing_date 2003-12-01 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=1,824,000,000, shares_after=2,280,000,000
+
+### ERTX — listing_date 1994-06-10 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=12,279,500, shares_after=24,559,000
+
+### ERTX — listing_date 1997-11-24 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=24,559,000, shares_after=49,118,000
+
+### ERTX — listing_date 2016-06-29 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=8.0000, shares_added=1,125,722,318, shares_after=1,286,539,792
+
+### ESTI — listing_date 1996-10-23 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.1727, shares_added=68,131,440, shares_after=126,227,440
+
+### ESTI — listing_date 2000-12-11 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=7.3714, shares_added=1,738,670,976, shares_after=2,011,558,720
+
+### FISH — listing_date 2025-09-09 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=10.0000, shares_added=4,320,000,000, shares_after=4,800,000,000
+
+### GDYR — listing_date 2015-07-14 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=10.0000, shares_added=369,000,000, shares_after=410,000,000
+
+### GEMA — listing_date 2018-07-13 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=1,280,000,000, shares_after=1,600,000,000
+
+### GGRM — listing_date 1996-06-03 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=481,022,000, shares_after=962,044,000
+
+### GGRM — listing_date 1996-06-04 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=962,044,000, shares_after=1,924,088,000
+
+### GJTL — listing_date 1991-07-29 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.1000, shares_added=10,000,000, shares_after=110,000,000
+
+### GJTL — listing_date 1993-02-02 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.8000, shares_added=88,000,000, shares_after=198,000,000
+
+### GJTL — listing_date 1995-09-11 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=396,000,000, shares_after=792,000,000
+
+### GJTL — listing_date 1997-10-20 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=1,584,000,000, shares_after=3,168,000,000
+
+### HERO — listing_date 1994-01-27 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.1351, shares_added=58,825,000, shares_after=110,650,000
+
+### HERO — listing_date 1996-04-15 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=110,650,000, shares_after=221,300,000
+
+### HEXA — listing_date 2002-07-29 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=84,000,000, shares_after=168,000,000
+
+### HEXA — listing_date 2005-09-01 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=672,000,000, shares_after=840,000,000
+
+### ICBP — listing_date 2016-07-27 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=5,830,954,000, shares_after=11,661,908,000
+
+### IIKP — listing_date 2017-05-19 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=10.0000, shares_added=29,952,000,000, shares_after=33,280,000,000
+
+### IKBI — listing_date 1993-09-08 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.6000, shares_added=13,500,000, shares_after=36,000,000
+
+### IKBI — listing_date 1998-04-23 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=8.5000, shares_added=270,000,000, shares_after=306,000,000
+
+### IKBI — listing_date 2016-09-21 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=4.0000, shares_added=918,000,000, shares_after=1,224,000,000
+
+### INAI — listing_date 2014-02-12 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=158,400,000, shares_after=316,800,000
+
+### INCF — listing_date 1996-02-05 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=11,200,000, shares_after=22,400,000
+
+### INCF — listing_date 1998-06-15 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.5000, shares_added=11,200,000, shares_after=33,600,000
+
+### INDF — listing_date 1996-08-12 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=763,000,000, shares_after=1,526,000,000
+
+### INDF — listing_date 2000-09-29 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=7,324,800,000, shares_after=9,156,000,000
+
+### INDF — listing_date 2007-09-29 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=4.4561, shares_added=7,324,800,000, shares_after=9,444,189,000
+
+### INDR — listing_date 1995-02-20 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=13.4636, shares_added=304,381,552, shares_after=328,803,189
+
+### INDR — listing_date 1996-12-09 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=1.3115, shares_added=156,264,363, shares_after=657,914,047
+
+### INKP — listing_date 1991-02-11 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.2000, shares_added=20,540,649, shares_after=123,243,893
+
+### INKP — listing_date 1991-12-19 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.2864, shares_added=41,327,443, shares_after=185,604,277
+
+### INKP — listing_date 1992-11-11 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.4330, shares_added=102,027,093, shares_after=337,631,370
+
+### INKP — listing_date 1993-08-02 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.1116, shares_added=40,000,000, shares_after=398,298,245
+
+### INKP — listing_date 1993-09-10 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.1537, shares_added=61,225,000, shares_after=459,523,245
+
+### INKP — listing_date 1994-09-28 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.3948, shares_added=189,336,371, shares_after=668,859,616
+
+### INKP — listing_date 1995-12-14 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.1107, shares_added=75,829,017, shares_after=760,845,676
+
+### INKP — listing_date 1996-10-03 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.1550, shares_added=147,559,764, shares_after=1,099,700,148
+
+### INKP — listing_date 1997-09-03 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.6509, shares_added=1,712,297,882, shares_after=4,342,775,986
+
+### INRU — listing_date 1991-06-10 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.5000, shares_added=135,000,000, shares_after=405,000,000
+
+### INTD — listing_date 2017-06-14 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=473,462,400, shares_after=591,828,000
+
+### INVS — listing_date 2013-07-12 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=3.8889, shares_added=7,421,341,226, shares_after=9,990,267,035
+
+### JSKY — listing_date 2019-08-16 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=1,016,270,000, shares_after=2,032,540,000
+
+### KARW — listing_date 1996-08-19 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=65,000,000, shares_after=130,000,000
+
+### KARW — listing_date 1996-08-19 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.5000, shares_added=65,000,000, shares_after=195,000,000
+
+### KBLI — listing_date 1994-06-16 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=70,000,000, shares_after=140,000,000
+
+### KBLI — listing_date 1997-12-12 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=280,000,000, shares_after=560,000,000
+
+### KBLM — listing_date 1995-05-08 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=14,000,000, shares_after=28,000,000
+
+### KIAS — listing_date 1997-02-24 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=85,000,000, shares_after=170,000,000
+
+### KICI — listing_date 1995-07-21 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.3800, shares_added=19,000,000, shares_after=69,000,000
+
+### KICI — listing_date 1995-12-16 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=69,000,000, shares_after=138,000,000
+
+### KICI — listing_date 2016-08-23 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=138,000,000, shares_after=276,000,000
+
+### KKGI — listing_date 1997-06-02 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=50,000,000, shares_after=100,000,000
+
+### KKGI — listing_date 1999-09-28 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.5000, shares_added=150,000,000, shares_after=250,000,000
+
+### KKGI — listing_date 2017-03-27 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=4,000,000,000, shares_after=5,000,000,000
+
+### KREN — listing_date 2016-06-23 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=14,566,776,080, shares_after=18,208,470,100
+
+### LAPD — listing_date 2001-11-13 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.2000, shares_added=43,000,000, shares_after=258,000,000
+
+### LIFE — listing_date 2019-09-26 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=1,050,000,000, shares_after=2,100,000,000
+
+### LION — listing_date 2015-09-02 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=10.0000, shares_added=468,144,000, shares_after=520,160,000
+
+### LMAS — listing_date 2004-08-09 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.0996, shares_added=70,265,055, shares_after=775,645,155
+
+### LMPI — listing_date 1997-07-18 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.6000, shares_added=35,400,000, shares_after=94,400,000
+
+### LMPI — listing_date 1997-07-21 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=94,400,000, shares_after=188,800,000
+
+### LMPI — listing_date 2000-12-20 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.2000, shares_added=43,046,400, shares_after=258,278,400
+
+### LMSH — listing_date 2015-09-02 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=10.0000, shares_added=86,400,000, shares_after=96,000,000
+
+### LPBN — listing_date 1990-06-27 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.1669, shares_added=7,935,000, shares_after=14,735,000
+
+### LPBN — listing_date 1992-07-09 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=3.0000, shares_added=95,220,000, shares_after=142,830,000
+
+### LPBN — listing_date 1993-12-20 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.5000, shares_added=95,220,000, shares_after=285,660,000
+
+### LPBN — listing_date 1996-12-09 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=428,490,000, shares_after=856,980,000
+
+### LPIN — listing_date 2019-05-24 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=4.0000, shares_added=318,750,000, shares_after=425,000,000
+
+### LPLI — listing_date 1990-08-23 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.0838, shares_added=267,850, shares_after=3,464,250
+
+### LPLI — listing_date 1994-03-22 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.7000, shares_added=5,949,916, shares_after=9,449,866
+
+### LPLI — listing_date 1996-05-06 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=45,610,291, shares_after=91,220,582
+
+### LPLI — listing_date 1996-05-30 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.5000, shares_added=45,610,291, shares_after=136,830,873
+
+### LPLI — listing_date 2005-03-28 — confidence 4/5
+
+- action_type_raw=**reverseStock**, ratio=2.0085, shares_added=4,051,498,171, shares_after=8,068,847,675
+
+### LTLS — listing_date 2015-01-09 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=780,000,000, shares_after=1,560,000,000
+
+### MAPI — listing_date 2018-06-04 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=10.0000, shares_added=14,940,000,000, shares_after=16,600,000,000
+
+### MARI — listing_date 2018-07-17 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=10.0000, shares_added=4,727,379,600, shares_after=5,252,644,000
+
+### MARK — listing_date 2019-02-11 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=3,040,000,248, shares_after=3,800,000,310
+
+### MBAI — listing_date 1995-06-08 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.5000, shares_added=25,000,000, shares_after=75,000,000
+
+### MDKI — listing_date 2018-12-28 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.4000, shares_added=722,900,002, shares_after=2,530,150,002
+
+### MDLN — listing_date 2013-11-13 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=3,209,687,973, shares_after=6,419,375,946
+
+### MERK — listing_date 2015-12-21 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=20.0000, shares_added=425,600,000, shares_after=448,000,000
+
+### MIRA — listing_date 2000-08-14 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=114,000,000, shares_after=228,000,000
+
+### MIRA — listing_date 2008-05-30 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=1,368,000,000, shares_after=2,736,000,000
+
+### MLBI — listing_date 2014-11-06 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=100.0000, shares_added=2,085,930,000, shares_after=2,107,000,000
+
+### MRAT — listing_date 2002-08-02 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=4.0000, shares_added=321,000,000, shares_after=428,000,000
+
+### MTSM — listing_date 1993-04-19 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.4000, shares_added=5,400,000, shares_after=18,900,000
+
+### MTSM — listing_date 1995-01-06 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.2000, shares_added=31,752,000, shares_after=58,212,000
+
+### MYOR — listing_date 1995-10-19 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=127,764,000, shares_after=255,528,000
+
+### MYOR — listing_date 1995-10-19 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=3.0000, shares_added=511,056,000, shares_after=766,584,000
+
+### MYOR — listing_date 2016-08-04 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=25.0000, shares_added=21,464,351,736, shares_after=22,358,699,725
+
+### PANS — listing_date 2002-09-18 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=160,000,000, shares_after=320,000,000
+
+### PANS — listing_date 2008-01-15 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=360,000,000, shares_after=720,000,000
+
+### PJAA — listing_date 2006-07-10 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=799,999,996, shares_after=1,599,999,994
+
+### PLIN — listing_date 1994-01-14 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=115,000,000, shares_after=230,000,000
+
+### PLIN — listing_date 2006-12-22 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=355,000,000, shares_after=710,000,000
+
+### PLIN — listing_date 2006-12-26 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=2,840,000,000, shares_after=3,550,000,000
+
+### PNBN — listing_date 1990-08-30 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.0500, shares_added=416,305, shares_after=8,745,370
+
+### PNBN — listing_date 1992-12-24 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=6.1065, shares_added=44,658,280, shares_after=53,403,650
+
+### PNBN — listing_date 1993-05-28 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=3.1666, shares_added=147,919,200, shares_after=216,190,850
+
+### PNBN — listing_date 1997-05-26 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0888, shares_added=300,902,312, shares_after=577,273,624
+
+### PNBN — listing_date 1999-10-04 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0083, shares_added=2,942,753,764, shares_after=5,861,205,702
+
+### PNBN — listing_date 2002-09-03 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.5063, shares_added=8,828,605,053, shares_after=14,689,810,755
+
+### PNIN — listing_date 1990-08-20 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.0001, shares_added=104,176, shares_after=765,104,176
+
+### PNIN — listing_date 1992-12-23 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.0000, shares_added=32,614, shares_after=765,518,090
+
+### PNIN — listing_date 1992-12-23 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.0143, shares_added=11,001,954, shares_after=780,625,874
+
+### PNIN — listing_date 1993-12-16 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.0001, shares_added=71,000, shares_after=781,344,574
+
+### PNIN — listing_date 1993-12-16 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.0610, shares_added=49,069,626, shares_after=854,058,370
+
+### PNIN — listing_date 1996-12-19 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=1.1055, shares_added=90,107,370, shares_after=944,165,740
+
+### PNIN — listing_date 2003-06-03 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=1.6084, shares_added=1,186,757,411, shares_after=3,137,465,822
+
+### PNLF — listing_date 1990-09-10 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=10.2128, shares_added=18,425,564, shares_after=20,425,564
+
+### PNLF — listing_date 1996-12-16 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0108, shares_added=73,999,228, shares_after=147,204,792
+
+### PNLF — listing_date 2003-07-28 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=4.0008, shares_added=8,982,468,105, shares_after=11,975,830,476
+
+### PNSE — listing_date 2013-07-29 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.0250, shares_added=19,458,866, shares_after=797,813,496
+
+### POLY — listing_date 1995-04-04 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=4.0000, shares_added=276,000,000, shares_after=368,000,000
+
+### POLY — listing_date 1995-04-18 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.5000, shares_added=552,000,000, shares_after=920,000,000
+
+### PROD — listing_date 1990-02-01 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.3587, shares_added=79,272, shares_after=300,272
+
+### PSAB — listing_date 2016-06-17 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=4.6221, shares_added=19,168,000,000, shares_after=24,460,000,000
+
+### PSDN — listing_date 1997-08-04 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=120,000,000, shares_after=240,000,000
+
+### PSDN — listing_date 1997-08-05 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.5000, shares_added=120,000,000, shares_after=360,000,000
+
+### PTBA — listing_date 2017-12-14 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=9,216,527,396, shares_after=11,520,659,245
+
+### PTRA — listing_date 1995-09-04 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.6667, shares_added=210,000,000, shares_after=525,000,000
+
+### PTRA — listing_date 1997-11-03 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=997,500,000, shares_after=1,995,000,000
+
+### PTSN — listing_date 2019-07-04 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=3.0000, shares_added=3,542,896,000, shares_after=5,314,344,000
+
+### PTSP — listing_date 1995-09-11 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=31,000,000, shares_after=62,000,000
+
+### PTSP — listing_date 1995-09-29 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=62,000,000, shares_after=124,000,000
+
+### PWON — listing_date 1992-12-24 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.5000, shares_added=35,000,000, shares_after=105,000,000
+
+### PWON — listing_date 1996-01-29 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=210,000,000, shares_after=420,000,000
+
+### RALS — listing_date 1998-05-26 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=350,000,000, shares_after=700,000,000
+
+### RALS — listing_date 2001-02-15 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=700,000,000, shares_after=1,400,000,000
+
+### RALS — listing_date 2004-10-22 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=5,600,000,000, shares_after=7,000,000,000
+
+### RDTX — listing_date 1997-04-29 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.9765, shares_added=132,800,000, shares_after=268,800,000
+
+### RIGS — listing_date 2004-08-18 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=10.0000, shares_added=548,217,000, shares_after=609,130,000
+
+### SHID — listing_date 1993-08-23 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.5780, shares_added=9,000,000, shares_after=24,570,000
+
+### SHID — listing_date 1999-06-04 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=326,400,000, shares_after=652,800,000
+
+### SIMA — listing_date 1997-01-20 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=35,000,000, shares_after=70,000,000
+
+### SIMA — listing_date 1997-02-14 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.1429, shares_added=10,000,000, shares_after=80,000,000
+
+### SIMM — listing_date 2001-08-30 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=800,000,000, shares_after=1,000,000,000
+
+### SMAR — listing_date 1994-06-27 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.4000, shares_added=60,000,000, shares_after=210,000,000
+
+### SMAR — listing_date 1997-08-01 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.2000, shares_added=42,000,000, shares_after=252,000,000
+
+### SMAR — listing_date 2001-02-14 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.1800, shares_added=45,360,000, shares_after=297,360,000
+
+### SMAR — listing_date 2005-06-20 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=1,189,440,000, shares_after=1,486,800,000
+
+### SMRA — listing_date 2013-07-15 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=7,213,390,840, shares_after=14,426,781,680
+
+### SMSM — listing_date 1998-01-06 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.7200, shares_added=82,368,000, shares_after=196,768,000
+
+### SMSM — listing_date 1999-10-12 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.3200, shares_added=62,965,760, shares_after=259,733,760
+
+### SMSM — listing_date 2003-07-08 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=1,038,935,040, shares_after=1,298,668,800
+
+### SMSM — listing_date 2016-11-02 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=4.0000, shares_added=4,319,006,580, shares_after=5,758,675,440
+
+### SRSN — listing_date 1994-08-31 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.7000, shares_added=11,900,000, shares_after=28,900,000
+
+### SRSN — listing_date 2001-08-06 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=10.0000, shares_added=1,980,000,000, shares_after=2,200,000,000
+
+### SSTM — listing_date 1999-09-27 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=418,353,500, shares_after=836,707,000
+
+### STTP — listing_date 2000-12-05 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.6000, shares_added=152,000,000, shares_after=247,000,000
+
+### STTP — listing_date 2001-12-20 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=1,048,000,000, shares_after=1,310,000,000
+
+### TAMU — listing_date 2019-06-25 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=10.0000, shares_added=33,750,000,000, shares_after=37,500,000,000
+
+### TBIG — listing_date 2019-11-14 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=18,125,599,556, shares_after=22,656,999,445
+
+### TEJA — listing_date 1995-04-04 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=100,000,000, shares_after=200,000,000
+
+### TEJA — listing_date 1995-04-18 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.8000, shares_added=160,000,000, shares_after=360,000,000
+
+### TFCO — listing_date 1990-11-24 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.8500, shares_added=935,000, shares_after=2,035,000
+
+### TFCO — listing_date 1997-07-28 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=4.3294, shares_added=9,905,000, shares_after=12,880,000
+
+### TGKA — listing_date 1996-06-18 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.8000, shares_added=38,878,000, shares_after=87,475,500
+
+### TGKA — listing_date 2005-08-30 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=10.0000, shares_added=787,279,500, shares_after=874,755,000
+
+### TINS — listing_date 2014-05-07 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.4798, shares_added=2,414,733,454, shares_after=7,447,753,454
+
+### TIRA — listing_date 1993-07-27 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.4000, shares_added=4,000,000, shares_after=14,000,000
+
+### TIRA — listing_date 2016-01-27 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=10.0000, shares_added=529,200,000, shares_after=588,000,000
+
+### TIRT — listing_date 2000-05-15 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=4.0000, shares_added=468,000,000, shares_after=624,000,000
+
+### TLKM — listing_date 2013-08-28 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=80,639,997,120, shares_after=100,799,996,399
+
+### TOPS — listing_date 2018-07-09 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=26,664,000,000, shares_after=33,330,000,000
+
+### TRIM — listing_date 2000-04-03 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=10.0000, shares_added=1,800,000,000, shares_after=2,000,000,000
+
+### TRIM — listing_date 2000-06-06 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.7000, shares_added=1,400,000,000, shares_after=3,400,000,000
+
+### TRST — listing_date 1993-02-11 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=3.0000, shares_added=6,000,000, shares_after=9,000,000
+
+### TRST — listing_date 1996-11-25 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=96,000,000, shares_after=192,000,000
+
+### TRST — listing_date 1996-12-18 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.5000, shares_added=96,000,000, shares_after=288,000,000
+
+### TRST — listing_date 2000-10-09 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=1,728,000,000, shares_after=2,160,000,000
+
+### TRUS — listing_date 2015-07-27 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=400,000,000, shares_after=800,000,000
+
+### UNIC — listing_date 1990-10-03 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.0900, shares_added=5,400,000, shares_after=65,400,000
+
+### UNIC — listing_date 1994-09-13 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.0000, shares_added=66,000,000, shares_after=132,000,000
+
+### UNIC — listing_date 1997-10-06 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=2.0000, shares_added=145,200,028, shares_after=290,400,056
+
+### UNTR — listing_date 1994-04-04 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=1.5241, shares_added=11,864,000, shares_after=34,500,000
+
+### UNTR — listing_date 1994-04-04 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=4.0000, shares_added=103,500,000, shares_after=138,000,000
+
+### UNTR — listing_date 2000-06-26 — confidence 4/5
+
+- action_type_raw=**sahamBonus**, ratio=2.8000, shares_added=248,400,000, shares_after=386,400,000
+
+### UNTR — listing_date 2000-09-05 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=4.0000, shares_added=1,159,200,000, shares_after=1,545,600,000
+
+### UNVR — listing_date 2020-01-02 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=30,520,000,000, shares_after=38,150,000,000
+
+### VOKS — listing_date 2017-07-03 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=3,324,482,076, shares_after=4,155,602,595
+
+### ZINC — listing_date 2019-04-04 — confidence 4/5
+
+- action_type_raw=**stockSplit**, ratio=5.0000, shares_added=20,200,000,000, shares_after=25,250,000,000
 
 ## Tier 1 — clean-fraction splits (confidence 4-5)
 
-76 candidates. Ratio is a clean reciprocal of a common split ratio (0.2=1:5, 0.5=1:2, 0.125=1:8, etc.), permanent, real matching volume at the transition. Known-checkable tickers (BBCA, BBNI, AKRA) sorted first.
+75 candidates. Ratio is a clean reciprocal of a common split ratio (0.2=1:5, 0.5=1:2, 0.125=1:8, etc.), permanent, real matching volume at the transition. Known-checkable tickers (BBCA, BBNI, AKRA) sorted first.
 
 ### BBNI — ex_date 2023-10-06 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 863 trading days
+- **IDX ledger cross-check: stockSplit** on 2023-10-06 (lag +0d vs. this row's ex_date), ratio=2.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -23,6 +1105,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### AKRA — ex_date 2022-01-12 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 496 trading days
+- **IDX ledger cross-check: stockSplit** on 2022-01-12 (lag +0d vs. this row's ex_date), ratio=5.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -35,6 +1118,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BBCA — ex_date 2021-10-13 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 381 trading days
+- **IDX ledger cross-check: stockSplit** on 2021-10-13 (lag +0d vs. this row's ex_date), ratio=5.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -47,6 +1131,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MLPT — ex_date 2026-07-21 — confidence 5/5
 
 - ratio_from=0.04, ratio_to=1.0, action_type=**split**, pre-transition regime held 1573 trading days
+- **IDX ledger cross-check: stockSplit** on 2026-07-21 (lag +0d vs. this row's ex_date), ratio=25.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -59,6 +1144,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### RAJA — ex_date 2026-07-16 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 1517 trading days
+- **IDX ledger cross-check: stockSplit** on 2026-07-16 (lag +0d vs. this row's ex_date), ratio=5.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -71,6 +1157,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### CLEO — ex_date 2025-06-10 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 1306 trading days
+- **IDX ledger cross-check: sahamBonus** on 2025-06-30 (lag +20d vs. this row's ex_date), ratio=2.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -83,6 +1170,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### PTRO — ex_date 2025-01-03 — confidence 5/5
 
 - ratio_from=0.1, ratio_to=1.0, action_type=**split**, pre-transition regime held 1212 trading days
+- **IDX ledger cross-check: stockSplit** on 2025-01-03 (lag +0d vs. this row's ex_date), ratio=10.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -95,6 +1183,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### KEJU — ex_date 2024-12-30 — confidence 5/5
 
 - ratio_from=0.2667, ratio_to=1.0, action_type=**split**, pre-transition regime held 1210 trading days
+- **IDX ledger cross-check: sahamBonus** on 2025-01-17 (lag +18d vs. this row's ex_date), ratio=3.7500 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -107,6 +1196,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### KDSI — ex_date 2024-11-07 — confidence 5/5
 
 - ratio_from=0.25, ratio_to=1.0, action_type=**split**, pre-transition regime held 1176 trading days
+- **IDX ledger cross-check: stockSplit** on 2024-11-07 (lag +0d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -119,6 +1209,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SAMF — ex_date 2025-02-06 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 1171 trading days
+- **IDX ledger cross-check: stockSplit** on 2025-02-06 (lag +0d vs. this row's ex_date), ratio=2.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -131,6 +1222,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ISAT — ex_date 2024-10-14 — confidence 5/5
 
 - ratio_from=0.25, ratio_to=1.0, action_type=**split**, pre-transition regime held 1158 trading days
+- **IDX ledger cross-check: stockSplit** on 2024-10-14 (lag +0d vs. this row's ex_date), ratio=1.0000 — **DISAGREES** with ratio_from, see Cross-check disagreements below
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -143,6 +1235,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### RMKE — ex_date 2026-07-17 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 1100 trading days
+- **IDX ledger cross-check: stockSplit** on 2026-07-17 (lag +0d vs. this row's ex_date), ratio=5.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -155,6 +1248,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### INDS — ex_date 2024-07-04 — confidence 5/5
 
 - ratio_from=0.1, ratio_to=1.0, action_type=**split**, pre-transition regime held 1087 trading days
+- **IDX ledger cross-check: stockSplit** on 2024-07-04 (lag +0d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -167,6 +1261,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### PUDP — ex_date 2024-07-04 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 1087 trading days
+- **IDX ledger cross-check: stockSplit** on 2024-07-04 (lag +0d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -179,6 +1274,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### PBID — ex_date 2024-05-31 — confidence 5/5
 
 - ratio_from=0.25, ratio_to=1.0, action_type=**split**, pre-transition regime held 1065 trading days
+- **IDX ledger cross-check: stockSplit** on 2024-05-31 (lag +0d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -191,6 +1287,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BPII — ex_date 2024-05-13 — confidence 5/5
 
 - ratio_from=0.05, ratio_to=1.0, action_type=**split**, pre-transition regime held 1053 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -203,6 +1300,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### JECC — ex_date 2024-06-13 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 1019 trading days
+- **IDX ledger cross-check: stockSplit** on 2024-06-13 (lag +0d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -215,6 +1313,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### TBMS — ex_date 2024-02-16 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 1004 trading days
+- **IDX ledger cross-check: stockSplit** on 2024-02-16 (lag +0d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -227,6 +1326,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### GMTD — ex_date 2024-01-05 — confidence 5/5
 
 - ratio_from=0.1, ratio_to=1.0, action_type=**split**, pre-transition regime held 977 trading days
+- **IDX ledger cross-check: stockSplit** on 2024-01-04 (lag -1d vs. this row's ex_date), ratio=10.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -239,6 +1339,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SONA — ex_date 2024-01-03 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 975 trading days
+- **IDX ledger cross-check: stockSplit** on 2024-01-03 (lag +0d vs. this row's ex_date), ratio=2.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -251,6 +1352,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ASDM — ex_date 2023-12-12 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 962 trading days
+- **IDX ledger cross-check: stockSplit** on 2023-12-12 (lag +0d vs. this row's ex_date), ratio=2.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -263,6 +1365,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SKLT — ex_date 2023-12-05 — confidence 5/5
 
 - ratio_from=0.1, ratio_to=1.0, action_type=**split**, pre-transition regime held 957 trading days
+- **IDX ledger cross-check: stockSplit** on 2023-12-05 (lag +0d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -275,6 +1378,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MSIN — ex_date 2024-10-07 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 913 trading days
+- **IDX ledger cross-check: stockSplit** on 2024-10-07 (lag +0d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -287,6 +1391,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ASRM — ex_date 2024-05-22 — confidence 5/5
 
 - ratio_from=0.2381, ratio_to=0.9524, action_type=**split**, pre-transition regime held 901 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -299,6 +1404,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MAPA — ex_date 2023-07-17 — confidence 5/5
 
 - ratio_from=0.1, ratio_to=1.0, action_type=**split**, pre-transition regime held 859 trading days
+- **IDX ledger cross-check: stockSplit** on 2023-07-17 (lag +0d vs. this row's ex_date), ratio=10.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -311,6 +1417,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### IMPC — ex_date 2023-06-19 — confidence 5/5
 
 - ratio_from=0.0909, ratio_to=1.0, action_type=**split**, pre-transition regime held 842 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -323,6 +1430,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### TCID — ex_date 2023-06-06 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 833 trading days
+- **IDX ledger cross-check: stockSplit** on 2023-06-06 (lag +0d vs. this row's ex_date), ratio=2.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -335,6 +1443,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### TMAS — ex_date 2023-05-24 — confidence 5/5
 
 - ratio_from=0.1, ratio_to=1.0, action_type=**split**, pre-transition regime held 826 trading days
+- **IDX ledger cross-check: stockSplit** on 2023-05-23 (lag -1d vs. this row's ex_date), ratio=10.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -347,6 +1456,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### TUGU — ex_date 2023-05-24 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 826 trading days
+- **IDX ledger cross-check: stockSplit** on 2023-05-24 (lag +0d vs. this row's ex_date), ratio=2.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -359,6 +1469,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MIDI — ex_date 2023-03-06 — confidence 5/5
 
 - ratio_from=0.0948, ratio_to=0.9479, action_type=**split**, pre-transition regime held 779 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -371,6 +1482,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SOHO — ex_date 2023-11-17 — confidence 5/5
 
 - ratio_from=0.1, ratio_to=1.0, action_type=**split**, pre-transition regime held 779 trading days
+- **IDX ledger cross-check: stockSplit** on 2023-11-13 (lag -4d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -383,6 +1495,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BMRI — ex_date 2023-04-04 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 745 trading days
+- **IDX ledger cross-check: stockSplit** on 2023-04-04 (lag +0d vs. this row's ex_date), ratio=2.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -395,6 +1508,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### OASA — ex_date 2023-01-10 — confidence 5/5
 
 - ratio_from=0.1952, ratio_to=1.0, action_type=**split**, pre-transition regime held 741 trading days
+- **IDX ledger cross-check: hmetd** on 2023-01-30 (lag +20d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -407,6 +1521,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SKRN — ex_date 2023-01-06 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 739 trading days
+- **IDX ledger cross-check: stockSplit** on 2023-01-06 (lag +0d vs. this row's ex_date), ratio=5.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -419,6 +1534,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BYAN — ex_date 2022-12-02 — confidence 5/5
 
 - ratio_from=0.1, ratio_to=1.0, action_type=**split**, pre-transition regime held 714 trading days
+- **IDX ledger cross-check: stockSplit** on 2022-12-02 (lag +0d vs. this row's ex_date), ratio=10.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -431,6 +1547,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SMDR — ex_date 2023-01-31 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 702 trading days
+- **IDX ledger cross-check: stockSplit** on 2023-01-31 (lag +0d vs. this row's ex_date), ratio=5.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -443,6 +1560,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### EDGE — ex_date 2023-11-15 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 676 trading days
+- **IDX ledger cross-check: stockSplit** on 2023-11-15 (lag +0d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -455,6 +1573,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### JTPE — ex_date 2022-07-28 — confidence 5/5
 
 - ratio_from=0.25, ratio_to=1.0, action_type=**split**, pre-transition regime held 624 trading days
+- **IDX ledger cross-check: stockSplit** on 2022-07-28 (lag +0d vs. this row's ex_date), ratio=4.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -467,6 +1586,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ALDO — ex_date 2024-07-08 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 616 trading days
+- **IDX ledger cross-check: stockSplit** on 2024-07-08 (lag +0d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -479,6 +1599,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MLIA — ex_date 2022-07-15 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 615 trading days
+- **IDX ledger cross-check: stockSplit** on 2022-07-15 (lag +0d vs. this row's ex_date), ratio=5.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -491,6 +1612,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MEGA — ex_date 2026-04-10 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 600 trading days
+- **IDX ledger cross-check: sahamBonus** on 2026-05-04 (lag +24d vs. this row's ex_date), ratio=2.0101 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -503,6 +1625,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### PBSA — ex_date 2022-06-22 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 598 trading days
+- **IDX ledger cross-check: stockSplit** on 2022-06-22 (lag +0d vs. this row's ex_date), ratio=2.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -515,6 +1638,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### TPIA — ex_date 2022-08-23 — confidence 5/5
 
 - ratio_from=0.25, ratio_to=1.0, action_type=**split**, pre-transition regime held 588 trading days
+- **IDX ledger cross-check: stockSplit** on 2022-08-23 (lag +0d vs. this row's ex_date), ratio=4.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -527,6 +1651,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### EKAD — ex_date 2022-08-22 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 587 trading days
+- **IDX ledger cross-check: stockSplit** on 2022-08-22 (lag +0d vs. this row's ex_date), ratio=5.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -539,6 +1664,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### HRUM — ex_date 2022-06-02 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 584 trading days
+- **IDX ledger cross-check: stockSplit** on 2022-06-02 (lag +0d vs. this row's ex_date), ratio=5.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -551,6 +1677,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SILO — ex_date 2022-04-08 — confidence 5/5
 
 - ratio_from=0.125, ratio_to=1.0, action_type=**split**, pre-transition regime held 555 trading days
+- **IDX ledger cross-check: stockSplit** on 2022-04-08 (lag +0d vs. this row's ex_date), ratio=8.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -563,6 +1690,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### CUAN — ex_date 2025-07-15 — confidence 5/5
 
 - ratio_from=0.1, ratio_to=1.0, action_type=**split**, pre-transition regime held 549 trading days
+- **IDX ledger cross-check: stockSplit** on 2025-07-15 (lag +0d vs. this row's ex_date), ratio=10.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -575,6 +1703,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ESTA — ex_date 2022-06-20 — confidence 5/5
 
 - ratio_from=0.3321, ratio_to=1.0, action_type=**split**, pre-transition regime held 549 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -587,6 +1716,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### LPGI — ex_date 2024-09-17 — confidence 5/5
 
 - ratio_from=0.1, ratio_to=1.0, action_type=**split**, pre-transition regime held 528 trading days
+- **IDX ledger cross-check: stockSplit** on 2024-09-17 (lag +0d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -599,6 +1729,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### WGSH — ex_date 2026-04-06 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 520 trading days
+- **IDX ledger cross-check: sahamBonus** on 2026-04-24 (lag +18d vs. this row's ex_date), ratio=2.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -611,6 +1742,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### CYBR — ex_date 2026-05-13 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 500 trading days
+- **IDX ledger cross-check: waran** on 2026-08-11 (lag +90d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -623,6 +1755,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### HILL — ex_date 2025-03-14 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 483 trading days
+- **IDX ledger cross-check: stockSplit** on 2025-03-14 (lag +0d vs. this row's ex_date), ratio=5.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -635,6 +1768,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SCMA — ex_date 2021-10-29 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 444 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -647,6 +1781,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MTDL — ex_date 2022-01-03 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 437 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -659,6 +1794,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### HOMI — ex_date 2022-06-20 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 428 trading days
+- **IDX ledger cross-check: stockSplit** on 2022-06-20 (lag +0d vs. this row's ex_date), ratio=2.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -671,6 +1807,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### DSSA — ex_date 2026-04-09 — confidence 5/5
 
 - ratio_from=0.04, ratio_to=1.0, action_type=**split**, pre-transition regime held 410 trading days
+- **IDX ledger cross-check: stockSplit** on 2026-04-09 (lag +0d vs. this row's ex_date), ratio=25.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -683,6 +1820,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### DIVA — ex_date 2021-09-02 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 404 trading days
+- **IDX ledger cross-check: stockSplit** on 2021-09-02 (lag +0d vs. this row's ex_date), ratio=2.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -695,6 +1833,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### HEAL — ex_date 2021-07-30 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 382 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -707,6 +1846,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MMIX — ex_date 2025-10-24 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 371 trading days
+- **IDX ledger cross-check: sahamBonus** on 2025-11-10 (lag +17d vs. this row's ex_date), ratio=2.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -719,6 +1859,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BUAH — ex_date 2025-10-22 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 369 trading days
+- **IDX ledger cross-check: stockSplit** on 2025-10-22 (lag +0d vs. this row's ex_date), ratio=2.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -731,6 +1872,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### GOOD — ex_date 2021-07-09 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 368 trading days
+- **IDX ledger cross-check: stockSplit** on 2021-07-09 (lag +0d vs. this row's ex_date), ratio=5.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -743,6 +1885,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SRTG — ex_date 2021-05-18 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 332 trading days
+- **IDX ledger cross-check: stockSplit** on 2021-05-18 (lag +0d vs. this row's ex_date), ratio=5.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -755,6 +1898,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ERAA — ex_date 2021-03-31 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 302 trading days
+- **IDX ledger cross-check: stockSplit** on 2021-03-31 (lag +0d vs. this row's ex_date), ratio=5.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -767,6 +1911,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### HOKI — ex_date 2021-02-18 — confidence 5/5
 
 - ratio_from=0.25, ratio_to=1.0, action_type=**split**, pre-transition regime held 274 trading days
+- **IDX ledger cross-check: stockSplit** on 2021-02-18 (lag +0d vs. this row's ex_date), ratio=4.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -779,6 +1924,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### EMTK — ex_date 2021-01-11 — confidence 5/5
 
 - ratio_from=0.1, ratio_to=1.0, action_type=**split**, pre-transition regime held 247 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -791,6 +1937,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### AMOR — ex_date 2021-12-08 — confidence 5/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 240 trading days
+- **IDX ledger cross-check: stockSplit** on 2021-12-08 (lag +0d vs. this row's ex_date), ratio=2.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -803,6 +1950,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### DIGI — ex_date 2020-11-17 — confidence 5/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 213 trading days
+- **IDX ledger cross-check: stockSplit** on 2020-11-17 (lag +0d vs. this row's ex_date), ratio=5.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -812,21 +1960,10 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 | 2020-11-18 | 400.0000 | 400.0000 | 16,400 | 16,400 |
 | 2020-11-19 | 398.0000 | 398.0000 | 9,000 | 9,000 |
 
-### BEBS — ex_date 2022-12-21 — confidence 4/5
-
-- ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 190 trading days
-
-| date | yahoo_close | idx_close | yahoo_vol | idx_vol |
-|---|---|---|---|---|
-| 2022-12-19 | 746.0000 | 3730.0000 | 61,695,500 | 12,340,800 |
-| 2022-12-20 | 736.0000 | 3680.0000 | 121,965,500 | 24,397,000 |
-| 2022-12-21 | 770.0000 | 770.0000 | 191,661,300 | 191,700,900 |
-| 2022-12-22 | 770.0000 | 770.0000 | 160,027,900 | 160,034,000 |
-| 2022-12-23 | 800.0000 | 800.0000 | 82,842,500 | 82,842,500 |
-
 ### SIDO — ex_date 2020-09-14 — confidence 4/5
 
 - ratio_from=0.4962, ratio_to=0.9924, action_type=**split**, pre-transition regime held 170 trading days
+- **IDX ledger cross-check: stockSplit** on 2020-09-14 (lag +0d vs. this row's ex_date), ratio=2.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -839,6 +1976,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BELL — ex_date 2020-08-03 — confidence 4/5
 
 - ratio_from=0.2, ratio_to=1.0, action_type=**split**, pre-transition regime held 143 trading days
+- **IDX ledger cross-check: stockSplit** on 2020-08-03 (lag +0d vs. this row's ex_date), ratio=5.0000 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -851,6 +1989,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MITI — ex_date 2021-06-29 — confidence 4/5
 
 - ratio_from=2.0176, ratio_to=1.0, action_type=**reverse_split**, pre-transition regime held 103 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -863,6 +2002,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### NETV — ex_date 2024-10-22 — confidence 4/5
 
 - ratio_from=2.0, ratio_to=1.0, action_type=**reverse_split**, pre-transition regime held 70 trading days
+- **IDX ledger cross-check: tanpaHmetd** on 2024-10-28 (lag +6d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -875,6 +2015,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### FAST — ex_date 2020-02-12 — confidence 4/5
 
 - ratio_from=0.5, ratio_to=1.0, action_type=**split**, pre-transition regime held 29 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -887,6 +2028,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### FMII — ex_date 2023-11-07 — confidence 4/5
 
 - ratio_from=0.4877, ratio_to=1.0, action_type=**split**, pre-transition regime held 29 trading days
+- **IDX ledger cross-check: sahamBonus** on 2023-11-20 (lag +13d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -899,6 +2041,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SCCO — ex_date 2024-03-08 — confidence 4/5
 
 - ratio_from=0.25, ratio_to=1.0, action_type=**split**, pre-transition regime held 23 trading days
+- **IDX ledger cross-check: stockSplit** on 2024-03-08 (lag +0d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -911,6 +2054,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BEKS — ex_date 2020-12-18 — confidence 4/5
 
 - ratio_from=0.2114, ratio_to=0.9032, action_type=**split**, pre-transition regime held 6 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -927,6 +2071,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### RISE — ex_date 2026-01-20 — confidence 3/5
 
 - ratio_from=0.6757, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 1458 trading days
+- **IDX ledger cross-check: sahamBonus** on 2026-02-10 (lag +21d vs. this row's ex_date), ratio=1.4800 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -939,6 +2084,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### WINS — ex_date 2025-06-16 — confidence 3/5
 
 - ratio_from=0.9651, ratio_to=0.9861, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 1310 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -951,6 +2097,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### KKGI — ex_date 2023-12-18 — confidence 3/5
 
 - ratio_from=0.9602, ratio_to=0.9947, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 966 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -963,6 +2110,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### PANR — ex_date 2024-01-03 — confidence 3/5
 
 - ratio_from=0.9597, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 922 trading days
+- **IDX ledger cross-check: hmetd** on 2024-01-25 (lag +22d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -975,6 +2123,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### NOBU — ex_date 2023-08-08 — confidence 3/5
 
 - ratio_from=0.9293, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 874 trading days
+- **IDX ledger cross-check: hmetd** on 2023-08-28 (lag +20d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -987,6 +2136,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### INCI — ex_date 2023-07-11 — confidence 3/5
 
 - ratio_from=0.9444, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 855 trading days
+- **IDX ledger cross-check: Dividen Saham** on 2023-07-27 (lag +16d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -999,6 +2149,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### WICO — ex_date 2023-07-11 — confidence 3/5
 
 - ratio_from=0.6232, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 802 trading days
+- **IDX ledger cross-check: hmetd** on 2023-07-31 (lag +20d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1011,6 +2162,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### TBLA — ex_date 2023-04-05 — confidence 3/5
 
 - ratio_from=0.9869, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 746 trading days
+- **IDX ledger cross-check: hmetd** on 2023-04-18 (lag +13d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1023,6 +2175,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MTWI — ex_date 2022-12-27 — confidence 3/5
 
 - ratio_from=0.9729, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 731 trading days
+- **IDX ledger cross-check: hmetd** on 2023-01-12 (lag +16d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1035,6 +2188,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BBTN — ex_date 2022-12-23 — confidence 3/5
 
 - ratio_from=0.8884, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 729 trading days
+- **IDX ledger cross-check: hmetd** on 2023-01-11 (lag +19d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1047,6 +2201,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BRIS — ex_date 2022-12-14 — confidence 3/5
 
 - ratio_from=0.9753, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 722 trading days
+- **IDX ledger cross-check: esopMsop** on 2023-03-04 (lag +80d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1059,6 +2214,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BNBA — ex_date 2022-11-30 — confidence 3/5
 
 - ratio_from=0.8184, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 712 trading days
+- **IDX ledger cross-check: hmetd** on 2022-12-19 (lag +19d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1071,6 +2227,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### AMAR — ex_date 2022-12-05 — confidence 3/5
 
 - ratio_from=0.9599, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 710 trading days
+- **IDX ledger cross-check: partialDelisting** on 2022-12-21 (lag +16d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1083,6 +2240,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BPTR — ex_date 2023-01-20 — confidence 3/5
 
 - ratio_from=0.6108, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 696 trading days
+- **IDX ledger cross-check: hmetd** on 2023-02-08 (lag +19d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1095,6 +2253,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MAYA — ex_date 2024-01-10 — confidence 3/5
 
 - ratio_from=0.5629, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 693 trading days
+- **IDX ledger cross-check: hmetd** on 2024-01-26 (lag +16d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1107,6 +2266,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### PBRX — ex_date 2023-01-16 — confidence 3/5
 
 - ratio_from=0.6896, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 692 trading days
+- **IDX ledger cross-check: hmetd** on 2023-02-03 (lag +18d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1119,6 +2279,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### OMRE — ex_date 2022-12-26 — confidence 3/5
 
 - ratio_from=0.7468, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 680 trading days
+- **IDX ledger cross-check: hmetd** on 2023-01-17 (lag +22d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1131,6 +2292,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ADHI — ex_date 2022-10-25 — confidence 3/5
 
 - ratio_from=0.9157, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 633 trading days
+- **IDX ledger cross-check: hmetd** on 2022-11-14 (lag +20d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1143,6 +2305,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### PANI — ex_date 2022-08-09 — confidence 3/5
 
 - ratio_from=0.071, ratio_to=1.0, action_type=**unknown** (best-effort, not confirmed), pre-transition regime held 632 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1155,6 +2318,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### AHAP — ex_date 2022-08-08 — confidence 3/5
 
 - ratio_from=0.7869, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 631 trading days
+- **IDX ledger cross-check: hmetd** on 2022-08-25 (lag +17d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1167,6 +2331,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### KIOS — ex_date 2022-07-20 — confidence 3/5
 
 - ratio_from=0.7677, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 618 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1179,6 +2344,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MAIN — ex_date 2022-06-14 — confidence 3/5
 
 - ratio_from=2.2101, ratio_to=1.0, action_type=**unknown** (best-effort, not confirmed), pre-transition regime held 592 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1191,6 +2357,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### WEHA — ex_date 2022-08-08 — confidence 3/5
 
 - ratio_from=0.9396, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 578 trading days
+- **IDX ledger cross-check: hmetd** on 2022-08-25 (lag +17d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1203,6 +2370,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### VICO — ex_date 2022-12-02 — confidence 3/5
 
 - ratio_from=0.9415, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 576 trading days
+- **IDX ledger cross-check: hmetd** on 2022-12-15 (lag +13d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1215,6 +2383,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MDKA — ex_date 2022-04-14 — confidence 3/5
 
 - ratio_from=0.9756, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 559 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1227,6 +2396,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ESIP — ex_date 2022-03-10 — confidence 3/5
 
 - ratio_from=0.8279, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 534 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1239,6 +2409,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BBRM — ex_date 2022-02-24 — confidence 3/5
 
 - ratio_from=1.3555, ratio_to=1.0, action_type=**unknown** (best-effort, not confirmed), pre-transition regime held 526 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1251,6 +2422,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BGTG — ex_date 2022-02-23 — confidence 3/5
 
 - ratio_from=0.9565, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 525 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1263,6 +2435,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ABBA — ex_date 2022-02-18 — confidence 3/5
 
 - ratio_from=0.7945, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 522 trading days
+- **IDX ledger cross-check: hmetd** on 2022-03-10 (lag +20d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1275,6 +2448,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BPFI — ex_date 2022-02-02 — confidence 3/5
 
 - ratio_from=0.6667, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 510 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1287,6 +2461,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MEJA — ex_date 2026-04-17 — confidence 3/5
 
 - ratio_from=0.8571, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 483 trading days
+- **IDX ledger cross-check: waran** on 2026-02-10 (lag -66d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1299,6 +2474,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### CNMA — ex_date 2026-04-15 — confidence 3/5
 
 - ratio_from=0.9804, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 481 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1311,6 +2487,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### JAYA — ex_date 2021-11-09 — confidence 3/5
 
 - ratio_from=0.849, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 451 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1323,6 +2500,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### YELO — ex_date 2021-11-09 — confidence 3/5
 
 - ratio_from=0.4083, ratio_to=1.0, action_type=**unknown** (best-effort, not confirmed), pre-transition regime held 451 trading days
+- **IDX ledger cross-check: hmetd** on 2021-11-25 (lag +16d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1335,6 +2513,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### CCSI — ex_date 2021-11-01 — confidence 3/5
 
 - ratio_from=0.8333, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 445 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1347,6 +2526,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MOLI — ex_date 2021-10-04 — confidence 3/5
 
 - ratio_from=0.8571, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 426 trading days
+- **IDX ledger cross-check: sahamBonus** on 2021-10-14 (lag +10d vs. this row's ex_date), ratio=1.1667 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1359,6 +2539,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### GSMF — ex_date 2021-12-09 — confidence 3/5
 
 - ratio_from=0.6875, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 421 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1371,6 +2552,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SDRA — ex_date 2021-09-15 — confidence 3/5
 
 - ratio_from=0.9889, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 413 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1383,6 +2565,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### AGRO — ex_date 2021-11-29 — confidence 3/5
 
 - ratio_from=0.9784, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 412 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1395,6 +2578,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BBRI — ex_date 2021-09-08 — confidence 3/5
 
 - ratio_from=0.9091, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 408 trading days
+- **IDX ledger cross-check: partialDelisting** on 2021-10-04 (lag +26d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1407,6 +2591,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### TIFA — ex_date 2021-09-06 — confidence 3/5
 
 - ratio_from=0.391, ratio_to=1.0, action_type=**unknown** (best-effort, not confirmed), pre-transition regime held 406 trading days
+- **IDX ledger cross-check: hmetd** on 2021-09-17 (lag +11d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1419,6 +2604,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ZBRA — ex_date 2021-08-26 — confidence 3/5
 
 - ratio_from=0.8188, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 399 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1431,6 +2617,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ASSA — ex_date 2021-07-13 — confidence 3/5
 
 - ratio_from=0.9228, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 370 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1443,6 +2630,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BBKP — ex_date 2023-05-16 — confidence 3/5
 
 - ratio_from=0.9875, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 364 trading days
+- **IDX ledger cross-check: partialDelisting** on 2023-06-07 (lag +22d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1455,6 +2643,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BBYB — ex_date 2022-11-21 — confidence 3/5
 
 - ratio_from=0.9337, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 358 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1467,6 +2656,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ASRM — ex_date 2025-11-13 — confidence 3/5
 
 - ratio_from=0.9524, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 355 trading days
+- **IDX ledger cross-check: Dividen Saham** on 2025-12-05 (lag +22d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1479,6 +2669,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### AGRS — ex_date 2021-06-10 — confidence 3/5
 
 - ratio_from=0.7008, ratio_to=0.9568, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 347 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1491,6 +2682,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BBKP — ex_date 2021-11-17 — confidence 3/5
 
 - ratio_from=0.7135, ratio_to=0.9875, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 330 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1503,6 +2695,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BNLI — ex_date 2021-07-09 — confidence 3/5
 
 - ratio_from=0.8741, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 316 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1515,6 +2708,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ASJT — ex_date 2021-08-12 — confidence 3/5
 
 - ratio_from=0.7655, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 313 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1527,6 +2721,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BANK — ex_date 2022-05-18 — confidence 3/5
 
 - ratio_from=0.889, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 313 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1539,6 +2734,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BRMS — ex_date 2021-03-29 — confidence 3/5
 
 - ratio_from=0.8722, ratio_to=0.9282, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 300 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1551,6 +2747,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BBYB — ex_date 2021-06-10 — confidence 3/5
 
 - ratio_from=0.9034, ratio_to=0.9337, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 293 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1563,6 +2760,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SMRA — ex_date 2021-06-04 — confidence 3/5
 
 - ratio_from=0.969, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 291 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1575,6 +2773,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### AGRS — ex_date 2022-08-09 — confidence 3/5
 
 - ratio_from=0.9568, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 285 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1587,6 +2786,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### PGJO — ex_date 2021-02-25 — confidence 3/5
 
 - ratio_from=0.7247, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 267 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1599,6 +2799,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### PDPP — ex_date 2023-11-27 — confidence 3/5
 
 - ratio_from=0.812, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 254 trading days
+- **IDX ledger cross-check: sahamBonus** on 2023-12-21 (lag +24d vs. this row's ex_date), ratio=1.1875 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1611,6 +2812,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BBSI — ex_date 2022-12-09 — confidence 3/5
 
 - ratio_from=0.9539, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 252 trading days
+- **IDX ledger cross-check: hmetd** on 2022-12-28 (lag +19d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1623,6 +2825,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BBSI — ex_date 2021-12-01 — confidence 3/5
 
 - ratio_from=0.9276, ratio_to=0.9539, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 239 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1635,6 +2838,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BMAS — ex_date 2023-11-03 — confidence 3/5
 
 - ratio_from=0.6029, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 230 trading days
+- **IDX ledger cross-check: hmetd** on 2023-11-20 (lag +17d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1647,6 +2851,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### WINS — ex_date 2026-05-26 — confidence 3/5
 
 - ratio_from=0.9861, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 227 trading days
+- **IDX ledger cross-check: Dividen Saham** on 2026-06-18 (lag +23d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1659,6 +2864,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ARTO — ex_date 2021-03-05 — confidence 3/5
 
 - ratio_from=0.8293, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 224 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1671,6 +2877,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### DNAR — ex_date 2020-10-23 — confidence 2/5
 
 - ratio_from=0.9618, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 199 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1683,6 +2890,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BEKS — ex_date 2021-10-11 — confidence 2/5
 
 - ratio_from=0.9032, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 196 trading days
+- **IDX ledger cross-check: hmetd** on 2021-10-27 (lag +16d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1695,6 +2903,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BRMS — ex_date 2021-12-23 — confidence 2/5
 
 - ratio_from=0.9282, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 183 trading days
+- **IDX ledger cross-check: hmetd** on 2022-01-11 (lag +19d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1707,6 +2916,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### UFOE — ex_date 2024-12-04 — confidence 2/5
 
 - ratio_from=0.7893, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 164 trading days
+- **IDX ledger cross-check: sahamBonus** on 2024-12-24 (lag +20d vs. this row's ex_date), ratio=1.2670 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1719,6 +2929,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ACST — ex_date 2020-08-27 — confidence 2/5
 
 - ratio_from=0.5373, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 158 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1731,6 +2942,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### CMNP — ex_date 2020-11-10 — confidence 2/5
 
 - ratio_from=0.8948, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 155 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1743,6 +2955,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BEEF — ex_date 2025-05-27 — confidence 2/5
 
 - ratio_from=0.885, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 154 trading days
+- **IDX ledger cross-check: sahamBonus** on 2025-06-10 (lag +14d vs. this row's ex_date), ratio=1.1300 — **AGREES** with ratio_from
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1755,6 +2968,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SPMA — ex_date 2026-07-09 — confidence 2/5
 
 - ratio_from=0.7692, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 153 trading days
+- **IDX ledger cross-check: Dividen Saham** on 2026-07-30 (lag +21d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1767,6 +2981,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BKSL — ex_date 2023-01-30 — confidence 2/5
 
 - ratio_from=0.9769, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 148 trading days
+- **IDX ledger cross-check: hmetd** on 2023-02-21 (lag +22d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1779,6 +2994,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### KLAS — ex_date 2024-11-11 — confidence 2/5
 
 - ratio_from=0.5769, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 148 trading days
+- **IDX ledger cross-check: sahamBonus** on 2024-11-29 (lag +18d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1791,6 +3007,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BBHI — ex_date 2022-01-10 — confidence 2/5
 
 - ratio_from=0.5594, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 126 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1803,6 +3020,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SGER — ex_date 2024-05-28 — confidence 2/5
 
 - ratio_from=0.28, ratio_to=1.0, action_type=**unknown** (best-effort, not confirmed), pre-transition regime held 123 trading days
+- **IDX ledger cross-check: sahamBonus** on 2024-06-14 (lag +17d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1815,6 +3033,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MEDC — ex_date 2020-09-09 — confidence 2/5
 
 - ratio_from=0.8466, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 115 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1827,6 +3046,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BATA — ex_date 2022-05-10 — confidence 2/5
 
 - ratio_from=2.3611, ratio_to=1.0, action_type=**unknown** (best-effort, not confirmed), pre-transition regime held 110 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1839,6 +3059,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### IMAS — ex_date 2020-08-03 — confidence 2/5
 
 - ratio_from=0.9527, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 90 trading days
+- **IDX ledger cross-check: hmetd** on 2020-08-18 (lag +15d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1851,6 +3072,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ARGO — ex_date 2023-05-24 — confidence 2/5
 
 - ratio_from=1.1538, ratio_to=1.0, action_type=**unknown** (best-effort, not confirmed), pre-transition regime held 89 trading days
+- **IDX ledger cross-check: tanpaHmetd** on 2023-07-07 (lag +44d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1863,6 +3085,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SAME — ex_date 2021-07-13 — confidence 2/5
 
 - ratio_from=0.883, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 88 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1875,6 +3098,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MIDI — ex_date 2023-07-06 — confidence 2/5
 
 - ratio_from=0.9479, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 73 trading days
+- **IDX ledger cross-check: hmetd** on 2023-07-25 (lag +19d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1887,6 +3111,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BBSI — ex_date 2020-12-08 — confidence 2/5
 
 - ratio_from=0.9164, ratio_to=0.9276, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 63 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1899,6 +3124,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### DART — ex_date 2021-06-03 — confidence 2/5
 
 - ratio_from=3.1776, ratio_to=1.0, action_type=**unknown** (best-effort, not confirmed), pre-transition regime held 61 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1911,6 +3137,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### VICO — ex_date 2020-07-24 — confidence 2/5
 
 - ratio_from=1.4175, ratio_to=0.9415, action_type=**unknown** (best-effort, not confirmed), pre-transition regime held 52 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1923,6 +3150,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### RCCC — ex_date 2024-06-21 — confidence 2/5
 
 - ratio_from=0.9524, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 48 trading days
+- **IDX ledger cross-check: Dividen Saham** on 2024-07-10 (lag +19d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1935,6 +3163,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### TIRA — ex_date 2020-03-27 — confidence 2/5
 
 - ratio_from=1.1163, ratio_to=1.0, action_type=**unknown** (best-effort, not confirmed), pre-transition regime held 37 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1947,6 +3176,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MYTX — ex_date 2020-03-17 — confidence 2/5
 
 - ratio_from=2.7263, ratio_to=1.0, action_type=**unknown** (best-effort, not confirmed), pre-transition regime held 35 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1959,6 +3189,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### LUCY — ex_date 2024-01-16 — confidence 2/5
 
 - ratio_from=0.984, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 26 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1971,6 +3202,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BKSL — ex_date 2022-07-04 — confidence 2/5
 
 - ratio_from=0.9654, ratio_to=0.9769, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 22 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1983,6 +3215,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BLES — ex_date 2024-07-31 — confidence 2/5
 
 - ratio_from=1.0855, ratio_to=1.0, action_type=**unknown** (best-effort, not confirmed), pre-transition regime held 17 trading days
+- **IDX ledger cross-check: ipo** on 2024-07-08 (lag -23d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -1995,6 +3228,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### GOLF — ex_date 2024-07-31 — confidence 2/5
 
 - ratio_from=1.0566, ratio_to=1.0, action_type=**unknown** (best-effort, not confirmed), pre-transition regime held 17 trading days
+- **IDX ledger cross-check: ipo** on 2024-07-08 (lag -23d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2007,6 +3241,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SMMA — ex_date 2021-06-07 — confidence 2/5
 
 - ratio_from=0.7936, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 17 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2019,6 +3254,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ADMF — ex_date 2021-03-12 — confidence 2/5
 
 - ratio_from=0.7198, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 11 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2031,6 +3267,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BKSL — ex_date 2022-06-02 — confidence 2/5
 
 - ratio_from=1.1199, ratio_to=0.9654, action_type=**unknown** (best-effort, not confirmed), pre-transition regime held 8 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2043,6 +3280,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BNBR — ex_date 2026-07-09 — confidence 2/5
 
 - ratio_from=0.8511, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 8 trading days
+- **IDX ledger cross-check: hmetd** on 2026-08-03 (lag +25d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2055,6 +3293,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### COCO — ex_date 2026-07-09 — confidence 2/5
 
 - ratio_from=0.5737, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 8 trading days
+- **IDX ledger cross-check: hmetd** on 2026-07-28 (lag +19d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2067,6 +3306,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### PADI — ex_date 2026-07-09 — confidence 2/5
 
 - ratio_from=0.928, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 8 trading days
+- **IDX ledger cross-check: hmetd** on 2026-07-31 (lag +22d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2079,6 +3319,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SINI — ex_date 2026-07-09 — confidence 2/5
 
 - ratio_from=0.674, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 8 trading days
+- **IDX ledger cross-check: hmetd** on 2026-07-24 (lag +15d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2091,6 +3332,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### COCO — ex_date 2025-10-09 — confidence 2/5
 
 - ratio_from=0.369, ratio_to=1.0, action_type=**unknown** (best-effort, not confirmed), pre-transition regime held 7 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2103,6 +3345,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MINA — ex_date 2025-07-09 — confidence 2/5
 
 - ratio_from=0.8079, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 7 trading days
+- **IDX ledger cross-check: hmetd** on 2025-07-31 (lag +22d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2115,6 +3358,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ELPI — ex_date 2026-07-07 — confidence 2/5
 
 - ratio_from=0.8361, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 6 trading days
+- **IDX ledger cross-check: hmetd** on 2026-07-23 (lag +16d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2127,6 +3371,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### IMJS — ex_date 2025-12-09 — confidence 2/5
 
 - ratio_from=0.8927, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 6 trading days
+- **IDX ledger cross-check: hmetd** on 2025-12-23 (lag +14d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2139,6 +3384,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### LPCK — ex_date 2025-04-16 — confidence 2/5
 
 - ratio_from=0.9897, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 6 trading days
+- **IDX ledger cross-check: hmetd** on 2025-07-09 (lag +84d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2151,6 +3397,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SDRA — ex_date 2024-04-24 — confidence 2/5
 
 - ratio_from=0.9576, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 6 trading days
+- **IDX ledger cross-check: hmetd** on 2024-05-15 (lag +21d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2163,6 +3410,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### CSIS — ex_date 2025-12-22 — confidence 2/5
 
 - ratio_from=0.9463, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 5 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2175,6 +3423,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### FILM — ex_date 2025-07-07 — confidence 2/5
 
 - ratio_from=0.9442, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 5 trading days
+- **IDX ledger cross-check: hmetd** on 2025-07-24 (lag +17d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2187,6 +3436,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### GMFI — ex_date 2024-12-23 — confidence 2/5
 
 - ratio_from=0.9096, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 5 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2199,6 +3449,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### GMFI — ex_date 2025-12-22 — confidence 2/5
 
 - ratio_from=0.655, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 5 trading days
+- **IDX ledger cross-check: hmetd** on 2026-01-15 (lag +24d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2211,6 +3462,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### INCO — ex_date 2024-06-19 — confidence 2/5
 
 - ratio_from=0.9859, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 5 trading days
+- **IDX ledger cross-check: hmetd** on 2024-07-05 (lag +16d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2223,6 +3475,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### PALM — ex_date 2024-03-15 — confidence 2/5
 
 - ratio_from=0.9655, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 5 trading days
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2235,6 +3488,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### TPMA — ex_date 2024-06-21 — confidence 2/5
 
 - ratio_from=0.9103, ratio_to=1.0, action_type=**bonus_share_or_rights** (best-effort, not confirmed), pre-transition regime held 5 trading days
+- **IDX ledger cross-check: hmetd** on 2024-07-15 (lag +24d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2246,11 +3500,12 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 
 ## Tier 3 — ambiguous, self-reverting (OPEN QUESTIONS, not proposals)
 
-10 cases. Ratio changed with real matching volume but reverted back to its pre-transition value afterward — NOT a corporate action by definition (a genuine split/bonus/rights event doesn't undo itself). Listed for awareness only; do not seed corporate_actions from this section.
+10 cases. Ratio changed with real matching volume but reverted back to its pre-transition value afterward — NOT a corporate action by definition (a genuine split/bonus/rights event doesn't undo itself). Listed for awareness only; do not seed corporate_actions from this section. NOTE (2026-08-11): Caroline confirmed at least one of these (COCO) is a real rights issue whose self-reverting price-ratio shape is exactly what a rights issue looks like (IDX adjusts to theoretical ex-rights price on ex-date, Yahoo on a different schedule, then reconverge) — 'self-reverting' does NOT mean 'not a corporate action', it means Track 2's method can't distinguish the two. The IDX ledger cross-check below is the tool for telling them apart case by case; do not dismiss any Tier 3 row without checking it first.
 
 ### CSIS — 2025-12-15
 
 - ratio_from=1.0, ratio_to=0.9463 (later reverted)
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2263,6 +3518,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### FILM — 2025-06-30
 
 - ratio_from=1.0, ratio_to=0.9442 (later reverted)
+- **IDX ledger cross-check: hmetd** on 2025-07-24 (lag +24d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2275,6 +3531,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### GMFI — 2024-12-16
 
 - ratio_from=1.0, ratio_to=0.9096 (later reverted)
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2287,6 +3544,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### INCO — 2024-06-10
 
 - ratio_from=1.0, ratio_to=0.9859 (later reverted)
+- **IDX ledger cross-check: hmetd** on 2024-07-05 (lag +25d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2299,6 +3557,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### LPCK — 2025-04-08
 
 - ratio_from=1.0, ratio_to=0.9897 (later reverted)
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2311,6 +3570,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### PADI — 2026-06-29
 
 - ratio_from=1.0, ratio_to=0.928 (later reverted)
+- **IDX ledger cross-check: hmetd** on 2026-07-31 (lag +32d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2323,6 +3583,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### PALM — 2024-03-06
 
 - ratio_from=1.0, ratio_to=0.9655 (later reverted)
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2335,6 +3596,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### PEGE — 2026-06-29
 
 - ratio_from=1.0, ratio_to=0.9533 (later reverted)
+- **IDX ledger cross-check: hmetd** on 2026-07-24 (lag +25d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2347,6 +3609,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SDRA — 2024-03-25
 
 - ratio_from=1.0, ratio_to=0.9587 (later reverted)
+- **IDX ledger cross-check: hmetd** on 2024-05-15 (lag +51d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2359,6 +3622,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### TPMA — 2024-06-12
 
 - ratio_from=1.0, ratio_to=0.9103 (later reverted)
+- **IDX ledger cross-check: hmetd** on 2024-07-15 (lag +33d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2375,6 +3639,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ALDO — 2021-12-09
 
 - ratio_from=0.4796, ratio_to=0.5 — **ratio_to=0.5 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2387,6 +3652,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ARTO — 2020-03-30
 
 - ratio_from=0.1248, ratio_to=0.8293 — **ratio_to=0.8293 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2399,6 +3665,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ASRM — 2020-03-17
 
 - ratio_from=0.0997, ratio_to=0.1832 — **ratio_to=0.1832 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2411,6 +3678,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ASRM — 2020-08-28
 
 - ratio_from=0.1832, ratio_to=0.2381 — **ratio_to=0.2381 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2423,6 +3691,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BBHI — 2021-07-09
 
 - ratio_from=0.208, ratio_to=0.5594 — **ratio_to=0.5594 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2435,6 +3704,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BBKP — 2020-07-09
 
 - ratio_from=0.7059, ratio_to=0.7135 — **ratio_to=0.7135 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2447,6 +3717,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BCIC — 2020-07-28
 
 - ratio_from=11111.1111, ratio_to=1.0 — **ratio_from=11111.1111 outside plausible bound [0.020, 50] — likely a bad data point, not a real adjustment**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2459,6 +3730,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BEEF — 2024-09-26
 
 - ratio_from=0.8659, ratio_to=0.885 — **ratio_to=0.885 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2471,6 +3743,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BEKS — 2020-12-10
 
 - ratio_from=2.1144, ratio_to=0.2114 — **ratio_to=0.2114 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2483,6 +3756,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BMAS — 2022-11-21
 
 - ratio_from=0.3849, ratio_to=0.6029 — **ratio_to=0.6029 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2495,6 +3769,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BNBR — 2023-02-16
 
 - ratio_from=55.0725, ratio_to=1.0 — **ratio_from=55.0725 outside plausible bound [0.020, 50] — likely a bad data point, not a real adjustment**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2507,6 +3782,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BNBR — 2026-06-17
 
 - ratio_from=1.0, ratio_to=0.8395 — **ratio_to=0.8395 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: hmetd** on 2026-08-03 (lag +47d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2519,6 +3795,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### BNBR — 2026-06-29
 
 - ratio_from=0.8395, ratio_to=0.8511 — **ratio_to=0.8511 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: hmetd** on 2026-08-03 (lag +35d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2531,6 +3808,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### COCO — 2025-09-30
 
 - ratio_from=1.0, ratio_to=0.369 — **ratio_to=0.369 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2543,6 +3821,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### COCO — 2026-06-29
 
 - ratio_from=1.0, ratio_to=0.5737 — **ratio_to=0.5737 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: hmetd** on 2026-07-28 (lag +29d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2555,6 +3834,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### DSSA — 2024-07-18
 
 - ratio_from=0.004, ratio_to=0.04 — **ratio_from=0.004 outside plausible bound [0.020, 50] — likely a bad data point, not a real adjustment**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2567,6 +3847,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### ELPI — 2026-06-29
 
 - ratio_from=1.0, ratio_to=0.8361 — **ratio_to=0.8361 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: hmetd** on 2026-07-23 (lag +24d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2579,6 +3860,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### FMII — 2020-06-03
 
 - ratio_from=0.3658, ratio_to=0.4252 — **ratio_to=0.4252 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2591,6 +3873,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### FMII — 2023-07-07
 
 - ratio_from=0.4252, ratio_to=0.4877 — **ratio_to=0.4877 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2603,6 +3886,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### GMFI — 2025-12-15
 
 - ratio_from=1.0, ratio_to=0.655 — **ratio_to=0.655 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: hmetd** on 2026-01-15 (lag +31d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2615,6 +3899,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### IMJS — 2025-12-01
 
 - ratio_from=1.0, ratio_to=0.8927 — **ratio_to=0.8927 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: hmetd** on 2025-12-23 (lag +22d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2627,6 +3912,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### LPGI — 2022-07-11
 
 - ratio_from=0.05, ratio_to=0.1 — **ratio_to=0.1 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2639,6 +3925,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MAYA — 2021-03-09
 
 - ratio_from=0.3371, ratio_to=0.5629 — **ratio_to=0.5629 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2651,6 +3938,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MEGA — 2022-03-10
 
 - ratio_from=0.2867, ratio_to=0.5 — **ratio_to=0.5 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2663,6 +3951,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MINA — 2025-06-30
 
 - ratio_from=1.0, ratio_to=0.8079 — **ratio_to=0.8079 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: hmetd** on 2025-07-31 (lag +31d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2675,6 +3964,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### MSIN — 2020-12-29
 
 - ratio_from=0.1, ratio_to=0.2 — **ratio_to=0.2 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2687,6 +3977,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SAME — 2021-03-02
 
 - ratio_from=0.6508, ratio_to=0.883 — **ratio_to=0.883 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2699,6 +3990,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SCCO — 2024-02-01
 
 - ratio_from=1.0, ratio_to=0.25 — **ratio_to=0.25 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: stockSplit** on 2024-03-08 (lag +36d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2711,6 +4003,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SGER — 2022-06-30
 
 - ratio_from=0.1387, ratio_to=0.2635 — **ratio_to=0.2635 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2723,6 +4016,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SGER — 2023-11-09
 
 - ratio_from=0.2635, ratio_to=0.28 — **ratio_to=0.28 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2735,6 +4029,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SINI — 2026-06-29
 
 - ratio_from=1.0, ratio_to=0.674 — **ratio_to=0.674 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: hmetd** on 2026-07-24 (lag +25d vs. this row's ex_date) — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2747,6 +4042,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SPMA — 2021-06-29
 
 - ratio_from=0.3967, ratio_to=0.5236 — **ratio_to=0.5236 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2759,6 +4055,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SPMA — 2022-06-15
 
 - ratio_from=0.5236, ratio_to=0.5917 — **ratio_to=0.5917 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2771,6 +4068,7 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 ### SPMA — 2025-11-10
 
 - ratio_from=0.5917, ratio_to=0.7692 — **ratio_to=0.7692 does not converge to ~1.0 — sources still disagree after this transition, methodology's core assumption doesn't hold here**
+- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)
 
 | date | yahoo_close | idx_close | yahoo_vol | idx_vol |
 |---|---|---|---|---|
@@ -2779,3 +4077,12 @@ Methodology: a regime-transition is flagged when both sources show real, matchin
 | 2025-11-10 | 209.2308 | 272.0000 | 5,210,660 | 4,008,200 |
 | 2025-11-11 | 216.9231 | 282.0000 | 4,127,240 | 3,174,800 |
 | 2025-11-12 | 213.8461 | 278.0000 | 2,364,960 | 1,819,200 |
+
+## Cross-check disagreements — investigate before trusting either source
+
+1 cases where BOTH the price-ratio method and the IDX ledger found an event near the same date, but their ratios disagree by more than 15%. Not resolved in either direction here — each is a genuine open question: which source (if either) has the right ratio for this specific event.
+
+### ISAT — price-derived ex_date 2024-10-14 vs. ledger listing_date 2024-10-14
+
+- price-ratio: ratio_from=0.25, action_type=split (tier: tier1)
+- IDX ledger: action_type_raw=stockSplit, ratio=1.0000, lag=+0d

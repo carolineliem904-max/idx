@@ -10,6 +10,23 @@ with the later, more rigorous per-transition method — so counts here may
 differ slightly from earlier turns' estimates. That's the more rigorous
 number superseding a rough one, not a new inconsistency.
 
+IDX ledger cross-check (added 2026-08-11, see
+sources/idx_corporate_actions.py and HANDOFF.md for the feasibility
+investigation): every price-ratio-derived candidate below is annotated
+against IDX's own ListingActivity/GetIssuedHistory ledger — an
+independent, structured record of share-count-changing actions. This is
+a CROSS-CHECK, not a second unconditional ground truth (the ledger has
+its own real coverage gaps — see the source module docstring); where the
+two agree that's high confidence, where either side has something the
+other doesn't, that is itself reported, never silently resolved in
+either direction. A new "Tier 0" section holds ledger-confirmed clean
+splits/reverse-splits/bonus-shares with no matching price-ratio signal
+at all (usually because the ticker's Yahoo/IDX pair never diverged
+enough to trip Track 2, not because the event didn't happen) — still
+confidence 4, since the ledger's ratio math is independently validated
+against TPIA and BBNI (exact matches), just missing the second
+(price-based) leg the other tiers have.
+
 Runnable locally: python -m idx.jobs.generate_ca_review
 """
 from __future__ import annotations
@@ -22,15 +39,27 @@ from sqlalchemy import text
 
 from idx.db.session import session_scope
 from idx.jobs.classify_discrepancies import (
+    DEFAULT_MATERIALITY_THRESHOLD,
     fetch_paired_series,
     find_regime_transitions,
     tick_size,
 )
+from idx.sources.idx_corporate_actions import CLEAN_RATIO_TYPES, fetch_candidates
 
 log = structlog.get_logger()
 app = typer.Typer(add_completion=False)
 
 REPO_ROOT_REVIEW_PATH = "review/corporate_actions_candidates.md"
+
+# Widest observed listing lag in the TanggalPencatatan-vs-ex_date
+# investigation (LPCK, hmetd, 84 days) plus margin — see
+# sources/idx_corporate_actions.py module docstring point 1. Used only
+# to decide whether a ledger row and a price-derived transition are
+# plausibly "the same event", never to compute an ex_date.
+LEDGER_MATCH_WINDOW_DAYS = 90
+# Two ratios (as multiplicative factors, direction-agnostic) count as
+# agreeing if within this fraction of each other.
+RATIO_AGREEMENT_TOL = 0.15
 
 # Common real-world split/reverse-split ratios (1:N or N:1), tolerance 2%.
 _CLEAN_FRACTIONS = [1 / n for n in (2, 3, 4, 5, 8, 10, 20, 25, 50, 100)] + [
@@ -52,6 +81,98 @@ def guess_action_type(ratio_from: float, ratio_to: float) -> str:
     if 0.5 < r < 1.0:
         return "bonus_share_or_rights"  # odd fraction below 1 — common bonus/rights signature
     return "unknown"  # do not guess past this — spec: leave 'unknown' rather than force a label
+
+
+# --------------------------------------------------------------------------
+# IDX ledger cross-check (sources/idx_corporate_actions.py)
+# --------------------------------------------------------------------------
+
+
+def build_ledger_index(ledger_rows: list[dict]) -> dict[str, list[dict]]:
+    by_ticker: dict[str, list[dict]] = {}
+    for row in ledger_rows:
+        if row["ticker"] is None or row["listing_date"] is None:
+            continue
+        by_ticker.setdefault(row["ticker"], []).append(row)
+    return by_ticker
+
+
+def find_ledger_match(
+    ticker: str, ex_date: dt.date, ledger_index: dict[str, list[dict]]
+) -> dict | None:
+    """Best ledger row for `ticker` within LEDGER_MATCH_WINDOW_DAYS of
+    `ex_date`, or None.
+
+    Not simply "closest by |lag|": IDX's ledger regularly carries more
+    than one row for a ticker on the same listing date — a real split
+    alongside an unrelated same-day event (BBNI 2023-10-06 has a
+    `partialDelisting` row and THREE `stockSplit` rows), or alongside a
+    degenerate rounding-residual row of its own type (ISAT 2024-10-14
+    has two `stockSplit` rows, `JumlahSaham=0` on both — fractional-share
+    remainders, not the real split). A naive "first row seen at the
+    smallest |lag|" tie-break picked the `partialDelisting` row for BBNI
+    (silently discarding real agreement — ratio_from=0.5 vs. the real
+    ledger ratio=2.0, an exact reciprocal match) and the degenerate
+    `0->1` row for ISAT (a false "disagree": ratio=1.0 vs. ratio_from
+    1.9985 — a real ~2x split reported as a mismatch). Fixed by breaking
+    ties in favor of (a) a ledger row that actually derives a ratio, then
+    (b) the largest |shares_added| among those — the substantive change,
+    not a same-day unrelated event or a rounding remainder. Found via a
+    real, wrong output on the first full run of this cross-check, not
+    hypothesized in advance — same "verify what looks clean" discipline
+    as the rest of this codebase (CLAUDE.md SILENT SUCCESS).
+    """
+    candidates = [
+        (row, (row["listing_date"] - ex_date).days)
+        for row in ledger_index.get(ticker, [])
+        if abs((row["listing_date"] - ex_date).days) <= LEDGER_MATCH_WINDOW_DAYS
+    ]
+    if not candidates:
+        return None
+    best, best_lag = min(
+        candidates,
+        key=lambda pair: (
+            abs(pair[1]),
+            pair[0]["ratio"] is None,
+            -abs(pair[0]["shares_added"] or 0),
+        ),
+    )
+    return {**best, "lag_days": best_lag}
+
+
+def _ratio_factor(r: float) -> float:
+    """Direction-agnostic magnitude: 0.25 and 4.0 both become 4.0. Needed
+    because ratio_from's convention (Yahoo-relative-to-IDX, pre-
+    transition) and the ledger's after/(after-minus-added) convention
+    aren't guaranteed to land on the same side of 1.0 for the same real
+    event."""
+    r = abs(r)
+    return max(r, 1 / r) if r > 1e-9 else float("inf")
+
+
+def ratios_agree(price_ratio_from: float, ledger_ratio: float, tol: float = RATIO_AGREEMENT_TOL) -> bool:
+    a, b = _ratio_factor(price_ratio_from), _ratio_factor(ledger_ratio)
+    return abs(a - b) <= tol * b
+
+
+def annotate_with_ledger(row: dict, ledger_index: dict[str, list[dict]]) -> dict:
+    """Attaches a `ledger_match` key: None (no corroboration found — a
+    finding, not a data gap to paper over), or a dict with the matched
+    ledger row plus an `agreement` verdict ('agree' / 'disagree' /
+    'unratioed' — the ledger row's type has no ratio to compare, e.g. a
+    rights issue)."""
+    match = find_ledger_match(row["ticker"], row["ex_date"], ledger_index)
+    if match is None:
+        row["ledger_match"] = None
+        return row
+    if match["ratio"] is None:
+        verdict = "unratioed"
+    elif ratios_agree(row["ratio_from"], match["ratio"]):
+        verdict = "agree"
+    else:
+        verdict = "disagree"
+    row["ledger_match"] = {**match, "agreement": verdict}
+    return row
 
 
 def find_all_discrepant_tickers(session) -> list[str]:
@@ -122,7 +243,16 @@ def main() -> None:
 
     for ticker, entries in by_ticker.items():
         for t in find_regime_transitions(ticker, entries):
-            has_real_volume = t.yahoo_vol_at_transition > 0 and t.idx_vol_at_transition > 0
+            # Materiality (see classify_discrepancies.py, 2026-08-11 fix):
+            # a single nonzero-volume day at the transition isn't proof of
+            # sustained real trading in the new regime — require it across
+            # the whole post-regime window, same threshold as Track 1.
+            has_real_volume = (
+                t.yahoo_vol_at_transition > 0
+                and t.idx_vol_at_transition > 0
+                and t.yahoo_vol_frac_at_transition >= DEFAULT_MATERIALITY_THRESHOLD
+                and t.idx_vol_frac_at_transition >= DEFAULT_MATERIALITY_THRESHOLD
+            )
             if not has_real_volume:
                 continue
 
@@ -163,14 +293,55 @@ def main() -> None:
     tier3.sort(key=lambda r: (r["ticker"], r["ex_date"]))
     excluded.sort(key=lambda r: (r["ticker"], r["ex_date"]))
 
-    write_review_file(tier1, tier2, tier3, excluded)
+    # --- IDX ledger cross-check (sources/idx_corporate_actions.py) ---
+    # Cross-check only, per instruction: annotate every price-derived row
+    # with what the ledger independently says (or doesn't), surface
+    # ledger-only clean events as Tier 0, and disagreements as their own
+    # section. Never let the ledger silently overwrite the price-derived
+    # numbers above.
+    try:
+        ledger_rows = fetch_candidates()
+    except Exception as exc:  # noqa: BLE001 - a live external fetch; the
+        # review file must still generate from the price-ratio method
+        # alone if IDX's endpoint is down, not fail the whole job.
+        log.warning("idx_ledger_fetch_failed", error=str(exc))
+        ledger_rows = []
+
+    ledger_index = build_ledger_index(ledger_rows)
+    all_price_rows = tier1 + tier2 + tier3 + excluded
+    for row in all_price_rows:
+        annotate_with_ledger(row, ledger_index)
+
+    disagreements = [r for r in all_price_rows if r["ledger_match"] and r["ledger_match"]["agreement"] == "disagree"]
+    disagreements.sort(key=lambda r: (r["ticker"], r["ex_date"]))
+
+    # Tier 0: ledger-confirmed clean-ratio events with NO price-derived
+    # match at all — real events by IDX's own record, just missing the
+    # second (price-ratio) leg the other tiers have (usually because that
+    # ticker's Yahoo/IDX pair never diverged enough to trip Track 2, not
+    # because the event didn't happen).
+    matched_ledger_keys = {
+        (m["ticker"], m["listing_date"]) for r in all_price_rows if (m := r["ledger_match"])
+    }
+    tier0 = [
+        row
+        for row in ledger_rows
+        if row["action_type_raw"] in CLEAN_RATIO_TYPES
+        and row["ratio"] is not None
+        and (row["ticker"], row["listing_date"]) not in matched_ledger_keys
+    ]
+    tier0.sort(key=lambda r: (r["ticker"], r["listing_date"]))
+
+    write_review_file(tier1, tier2, tier3, excluded, tier0, disagreements)
     log.info(
         "ca_review_generated",
-        tier1=len(tier1), tier2=len(tier2), tier3=len(tier3), excluded=len(excluded),
+        tier0=len(tier0), tier1=len(tier1), tier2=len(tier2), tier3=len(tier3),
+        excluded=len(excluded), ledger_rows=len(ledger_rows), disagreements=len(disagreements),
     )
     print(
-        f"Wrote {REPO_ROOT_REVIEW_PATH}: tier1={len(tier1)} tier2={len(tier2)} "
-        f"tier3={len(tier3)} excluded_implausible={len(excluded)}"
+        f"Wrote {REPO_ROOT_REVIEW_PATH}: tier0={len(tier0)} tier1={len(tier1)} tier2={len(tier2)} "
+        f"tier3={len(tier3)} excluded_implausible={len(excluded)} "
+        f"ledger_rows_fetched={len(ledger_rows)} cross_check_disagreements={len(disagreements)}"
     )
 
 
@@ -192,9 +363,36 @@ def _fmt_evidence_table(evidence: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def _fmt_ledger_match(row: dict) -> str:
+    """Renders the IDX ledger cross-check line for one price-derived row.
+    Always present, even when there's no match — an absence is a finding
+    (see COCO's 2025-10-09 rights issue, confirmed externally but with no
+    ledger row at all), not something to leave implicit."""
+    m = row.get("ledger_match")
+    if m is None:
+        return "- **IDX ledger cross-check: no corroborating row found** within ±90 days (gap, or event predates/postdates the ledger's coverage of this ticker)"
+    lag = m["lag_days"]
+    base = (
+        f"- **IDX ledger cross-check: {m['action_type_raw']}** on {m['listing_date']} "
+        f"(lag {lag:+d}d vs. this row's ex_date)"
+    )
+    if m["agreement"] == "agree":
+        return base + f", ratio={m['ratio']:.4f} — **AGREES** with ratio_from"
+    if m["agreement"] == "disagree":
+        return base + f", ratio={m['ratio']:.4f} — **DISAGREES** with ratio_from, see Cross-check disagreements below"
+    return base + " — ledger doesn't derive a ratio for this action type (rights issue or similar); event corroborated, ratio not comparable"
+
+
 def write_review_file(
-    tier1: list[dict], tier2: list[dict], tier3: list[dict], excluded: list[dict]
+    tier1: list[dict],
+    tier2: list[dict],
+    tier3: list[dict],
+    excluded: list[dict],
+    tier0: list[dict] | None = None,
+    disagreements: list[dict] | None = None,
 ) -> None:
+    tier0 = tier0 or []
+    disagreements = disagreements or []
     lines = []
     lines.append("# Corporate actions review — candidates for `corporate_actions`")
     lines.append("")
@@ -213,7 +411,40 @@ def write_review_file(
         "authority); `ratio_to` is always ~1.0 (both sources agree afterward, by "
         "construction of what counts as a transition here)."
     )
+    lines.append(
+        "Every price-derived row below also carries an **IDX ledger cross-check** line "
+        "(sources/idx_corporate_actions.py, ListingActivity/GetIssuedHistory) — an "
+        "independent, structured IDX record, not the price-ratio method's own output. "
+        "It is a cross-check, not ground truth: it has real coverage gaps of its own "
+        "(see the source module docstring), so 'no corroborating row found' is reported "
+        "as a finding, not silently treated as disqualifying."
+    )
     lines.append("")
+
+    lines.append("## Tier 0 — IDX ledger-confirmed, no price-ratio corroboration (confidence 4)")
+    lines.append("")
+    lines.append(
+        f"{len(tier0)} candidates. `stockSplit`/`reverseStock`/`sahamBonus` rows from IDX's "
+        "own ListingActivity ledger with NO matching price-ratio transition — usually "
+        "because this ticker's Yahoo/IDX pair never diverged enough to trip Track 2 "
+        "detection, not because the event didn't happen. Ratio is derived directly from "
+        "IDX's own before/after share counts (`after / (after - added)`), independently "
+        "validated exactly against TPIA (4.0, confirmed 1:4) and BBNI (2.0, confirmed "
+        "1:2) — see sources/idx_corporate_actions.py. No price evidence table exists for "
+        "these (that's precisely what's missing), so `listing_date` is shown instead of "
+        "`ex_date` — do not assume they're the same (see that module's docstring point 1: "
+        "confirmed ~0-day lag for these three action types specifically, unlike rights "
+        "issues)."
+    )
+    lines.append("")
+    for row in tier0:
+        lines.append(f"### {row['ticker']} — listing_date {row['listing_date']} — confidence 4/5")
+        lines.append("")
+        lines.append(
+            f"- action_type_raw=**{row['action_type_raw']}**, ratio={row['ratio']:.4f}, "
+            f"shares_added={row['shares_added']:,.0f}, shares_after={row['shares_after']:,.0f}"
+        )
+        lines.append("")
 
     lines.append("## Tier 1 — clean-fraction splits (confidence 4-5)")
     lines.append("")
@@ -232,6 +463,7 @@ def write_review_file(
             f"action_type=**{row['action_type']}**, pre-transition regime held "
             f"{row['pre_regime_days']} trading days"
         )
+        lines.append(_fmt_ledger_match(row))
         lines.append("")
         lines.append(_fmt_evidence_table(row["evidence"]))
         lines.append("")
@@ -254,6 +486,7 @@ def write_review_file(
             f"action_type=**{row['action_type']}** (best-effort, not confirmed), "
             f"pre-transition regime held {row['pre_regime_days']} trading days"
         )
+        lines.append(_fmt_ledger_match(row))
         lines.append("")
         lines.append(_fmt_evidence_table(row["evidence"]))
         lines.append("")
@@ -264,13 +497,21 @@ def write_review_file(
         f"{len(tier3)} cases. Ratio changed with real matching volume but reverted back "
         "to its pre-transition value afterward — NOT a corporate action by definition "
         "(a genuine split/bonus/rights event doesn't undo itself). Listed for awareness "
-        "only; do not seed corporate_actions from this section."
+        "only; do not seed corporate_actions from this section. NOTE (2026-08-11): "
+        "Caroline confirmed at least one of these (COCO) is a real rights issue whose "
+        "self-reverting price-ratio shape is exactly what a rights issue looks like "
+        "(IDX adjusts to theoretical ex-rights price on ex-date, Yahoo on a different "
+        "schedule, then reconverge) — 'self-reverting' does NOT mean 'not a corporate "
+        "action', it means Track 2's method can't distinguish the two. The IDX ledger "
+        "cross-check below is the tool for telling them apart case by case; do not "
+        "dismiss any Tier 3 row without checking it first."
     )
     lines.append("")
     for row in tier3:
         lines.append(f"### {row['ticker']} — {row['ex_date']}")
         lines.append("")
         lines.append(f"- ratio_from={row['ratio_from']}, ratio_to={row['ratio_to']} (later reverted)")
+        lines.append(_fmt_ledger_match(row))
         lines.append("")
         lines.append(_fmt_evidence_table(row["evidence"]))
         lines.append("")
@@ -293,8 +534,33 @@ def write_review_file(
         lines.append(
             f"- ratio_from={row['ratio_from']}, ratio_to={row['ratio_to']} — **{row['reason']}**"
         )
+        lines.append(_fmt_ledger_match(row))
         lines.append("")
         lines.append(_fmt_evidence_table(row["evidence"]))
+        lines.append("")
+
+    lines.append("## Cross-check disagreements — investigate before trusting either source")
+    lines.append("")
+    lines.append(
+        f"{len(disagreements)} cases where BOTH the price-ratio method and the IDX ledger "
+        "found an event near the same date, but their ratios disagree by more than "
+        f"{RATIO_AGREEMENT_TOL:.0%}. Not resolved in either direction here — each is a "
+        "genuine open question: which source (if either) has the right ratio for this "
+        "specific event."
+    )
+    lines.append("")
+    for row in disagreements:
+        m = row["ledger_match"]
+        lines.append(f"### {row['ticker']} — price-derived ex_date {row['ex_date']} vs. ledger listing_date {m['listing_date']}")
+        lines.append("")
+        lines.append(
+            f"- price-ratio: ratio_from={row['ratio_from']}, action_type={row['action_type']} "
+            f"(tier: {'tier1' if row in tier1 else 'tier2' if row in tier2 else 'tier3' if row in tier3 else 'excluded'})"
+        )
+        lines.append(
+            f"- IDX ledger: action_type_raw={m['action_type_raw']}, ratio={m['ratio']:.4f}, "
+            f"lag={m['lag_days']:+d}d"
+        )
         lines.append("")
 
     with open(REPO_ROOT_REVIEW_PATH, "w") as f:
