@@ -168,6 +168,17 @@ backtests beautifully and loses money live.
 - **One commit per validated phase, not per file.** A commit is a
   checkpoint you can actually roll back to — validate before committing,
   not after.
+- **Commit directly to `main`; no feature branches (decided
+  2026-08-11).** Solo, single-machine project, and validation already
+  happens before each commit (see above) — a branch would add process
+  without adding safety here, and a branch that sits unmerged is exactly
+  how `main` ends up carrying stale docs while the real state lives
+  elsewhere (hit this literally the session before this decision was
+  made). Same granularity as above: one commit per validated unit of
+  work, just landed straight on `main` instead of a branch-then-PR
+  dance. Revisit if this ever becomes multi-contributor or multi-machine
+  — the tradeoff changes the moment two people (or two clones) can push
+  at once.
 - **Idempotent and resumable by construction, not by convention.** Every
   job should be safe to kill and rerun. Checkpointing (`bootstrap.py`),
   resumable-skip (`harvest_universe_history.py`), insert-only-on-change
