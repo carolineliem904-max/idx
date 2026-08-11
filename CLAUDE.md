@@ -110,6 +110,31 @@ backtests beautifully and loses money live.
   Return-series work reads Yahoo's `close_adj`. Full evidence and the
   investigation that produced this in HANDOFF.md — don't re-derive it,
   it's already been proven three separate ways.
+- **AT_FLOOR is a real market state, not a data defect (added
+  2026-08-11).** Rp50 is IDX's minimum tick price ("gocap" in local
+  trading slang) — a hard, exchange-enforced floor. A ticker can trade
+  there for months or years, with real (sometimes huge) volume, simply
+  because the exchange mechanically won't let the price go lower.
+  Confirmed via BNBR: 82% of 2020-01-02→2023-02-15 sat at exactly 50,
+  with up to 253M shares traded in a single day — that is not a freeze,
+  it's the real price. This started as a wrong hypothesis (a suspected
+  suspension) that the IDX volume data corrected — don't re-litigate it.
+  A naive "close never changes across many days" check cannot tell
+  floor-pinning apart from genuine staleness; per SOURCE AUTHORITY
+  above, the exception only ever applies to IDX's `close_raw` (Yahoo
+  isn't authoritative for it, so a Yahoo close that happens to equal 50
+  proves nothing). `jobs/classify_discrepancies.py`'s `IDX_FLOOR_PRICE`
+  / `FrozenRun.at_floor` implement this — without it, a ticker
+  genuinely fine on the IDX side but broken on the Yahoo side reads as
+  "both sides frozen, not a data-quality defect" and the real Yahoo
+  defect gets silently buried (found this exact failure on BBRM: IDX
+  pinned at 50 for a real 522-day run while Yahoo sat frozen at an
+  unrelated 67.7745 the entire time). This is not a rare edge case: 303
+  of 989 IDX tickers (31%) have spent at least one real-volume day at
+  the floor, and 82 (8.3%) have spent over a quarter of their history
+  there — a non-trivial slice of the universe worth remembering for any
+  future liquidity filtering or feature work, not just this classifier.
+  Full investigation and the universe-wide breakdown in HANDOFF.md.
 - **`prices_daily_latest` is the default read path.** Never query
   `prices_daily` directly for "what's the current value" — that base
   table holds full revision history (principle #2), and a naive read of
@@ -167,7 +192,7 @@ backtests beautifully and loses money live.
   silently-wrong value is the failure mode everything here is built to
   avoid.
 - **SILENT SUCCESS IS THE DOMINANT FAILURE MODE IN THIS PROJECT.** Not a
-  category among others — the default suspicion. Four confirmed
+  category among others — the default suspicion. Five confirmed
   instances so far, each one a check or a design that LOOKED clean and
   wasn't:
   1. `ON CONFLICT DO NOTHING` still writes a dead tuple even on a true
@@ -186,6 +211,13 @@ backtests beautifully and loses money live.
      coincidental repeat on the *moving* side was enough to hide a real
      289-day defect on the *frozen* side. Took a dedicated regression
      test to lock the fix in.
+  5. That same detector, before the AT_FLOOR fix, filed BBRM's real
+     522-day Yahoo freeze (stuck at 67.7745) as category C ("both
+     frozen, not a data-quality defect") because IDX's side was *also*
+     bit-identical the whole time — except IDX was fine, genuinely
+     trading at the Rp50 exchange floor. "Both sides look frozen" read
+     as a clean, boring non-finding; it was a real 2-year defect wearing
+     a suspension costume. 16 tickers, 77 runs were misfiled this way.
   When a check passes cleanly, or a result looks plausible, ask
   explicitly: **can this fail silently, and would I have noticed if it
   had?** If the answer isn't a confident no, that's the next thing to
